@@ -1,0 +1,56 @@
+name: Build Android APK
+
+# Produces an installable Android APK in the cloud — no local Android SDK needed.
+# Trigger it from the GitHub "Actions" tab (Run workflow) or on every push.
+# The APK is attached to the run as a downloadable artifact.
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Java (for Gradle)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZTE-Router-Manager-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

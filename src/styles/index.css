@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Theme tokens. Components reference semantic Tailwind colors (surface, brand,
+ * good/warn/bad, ...) which resolve to these variables, so a new skin is just a
+ * new `:root` block — no component churn.
+ */
+@layer base {
+  :root,
+  .dark {
+    --surface: 12 15 22; /* app background */
+    --surface-2: 20 25 36; /* cards */
+    --surface-3: 30 37 52; /* raised / hover */
+    --border: 42 51 68;
+    --content: 226 232 240;
+    --content-muted: 148 163 184;
+    --brand: 56 189 248;
+    --brand-strong: 14 165 233;
+    --good: 34 197 94;
+    --warn: 234 179 8;
+    --bad: 239 68 68;
+  }
+
+  .light {
+    --surface: 244 246 250;
+    --surface-2: 255 255 255;
+    --surface-3: 236 240 246;
+    --border: 214 221 232;
+    --content: 15 23 42;
+    --content-muted: 100 116 139;
+    --brand: 2 132 199;
+    --brand-strong: 3 105 161;
+    --good: 22 163 74;
+    --warn: 202 138 4;
+    --bad: 220 38 38;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-surface text-content antialiased;
+    font-family:
+      'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded bg-surface-3;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-border bg-surface-2 p-4 shadow-sm;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-strong text-white hover:bg-brand;
+  }
+  .btn-ghost {
+    @apply btn border border-border bg-transparent hover:bg-surface-3;
+  }
+  .btn-danger {
+    @apply btn bg-bad text-white hover:opacity-90;
+  }
+  .input {
+    @apply w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-content-muted;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs;
+  }
+}

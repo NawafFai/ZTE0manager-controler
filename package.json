@@ -1,0 +1,92 @@
+{
+  "name": "zte-router-manager",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Advanced open-source manager for the hidden HTTP API of ZTE 5G routers (MC801A, MC888, MC889, MC8020, ...).",
+  "type": "module",
+  "license": "MIT",
+  "author": "ZTE Router Manager contributors",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "electron": "electron .",
+    "app:dev": "npm run build && electron .",
+    "dist:win": "npm run build && electron-packager . \"ZTE Router Manager\" --platform=win32 --arch=x64 --out=release --overwrite --prune=false --ignore=\"(^/(node_modules|src|release|docs|scripts)|\\.re-cache|\\.map$)\"",
+    "dist:win:installer": "npm run build && electron-builder --win nsis",
+    "mobile:sync": "npm run build && cap sync",
+    "mobile:android": "npm run build && cap sync android && cap open android",
+    "mobile:ios": "npm run build && cap sync ios && cap open ios",
+    "apk:debug": "npm run build && cap add android && cd android && gradlew.bat assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.2.1",
+    "@tanstack/react-query": "^5.51.0",
+    "chart.js": "^4.4.3",
+    "crypto-js": "^4.2.0",
+    "monaco-editor": "^0.52.0",
+    "react": "^18.3.1",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.24.1",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/ios": "^6.2.1",
+    "@electron/packager": "^18.4.4",
+    "@monaco-editor/react": "^4.6.0",
+    "@types/crypto-js": "^4.2.2",
+    "@types/node": "^20.19.43",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.7",
+    "postcss": "^8.4.39",
+    "prettier": "^3.3.3",
+    "tailwindcss": "^3.4.6",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3",
+    "vitest": "^2.0.2"
+  },
+  "build": {
+    "appId": "com.zteroutermanager.app",
+    "productName": "ZTE Router Manager",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "artifactName": "ZTE-Router-Manager-${version}-portable.${ext}"
+    },
+    "portable": {
+      "artifactName": "ZTE-Router-Manager.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "ZTE-Router-Manager-Setup-${version}.${ext}"
+    }
+  }
+}
