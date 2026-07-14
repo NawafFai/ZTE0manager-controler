@@ -31,7 +31,9 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run build
       - run: npx cap add android
-      - run: npx capacitor-assets generate --android --assetPath resources
+      - name: Generate app icons (optional)
+        continue-on-error: true
+        run: npx capacitor-assets generate --android --assetPath resources
       - run: npx cap sync android
       - name: Build APK
         run: |
@@ -64,15 +66,18 @@ jobs:
           path: ZTE-Router-Manager-Windows.zip
           if-no-files-found: error
 
-  # ---------- Publish both to a public Release ----------
+  # ---------- Publish whatever built to a public Release ----------
   release:
     needs: [android, windows]
+    if: always() # publish even if one platform failed
     runs-on: ubuntu-latest
     steps:
       - name: Download build outputs
         uses: actions/download-artifact@v4
         with:
           path: release-files
+      - name: List downloaded files
+        run: ls -R release-files || echo "no artifacts"
       - name: Publish "latest" Release
         uses: ncipollo/release-action@v1
         with:
@@ -89,4 +94,5 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           makeLatest: true
+          artifactErrorsFailBuild: false
           token: ${{ secrets.GITHUB_TOKEN }}
