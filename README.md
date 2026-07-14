@@ -9,7 +9,7 @@
 [![Privacy](https://img.shields.io/badge/privacy-local--only-059669)](#-privacy--security)
 [![Built with](https://img.shields.io/badge/built%20with-React%20%2B%20Capacitor-38bdf8)](#)
 
-### [![Download the Android APK](https://img.shields.io/badge/⬇%20Download-Android%20APK-16a34a?style=for-the-badge)](../../releases/latest)
+### [![Download Android](https://img.shields.io/badge/⬇%20Download-Android%20APK-16a34a?style=for-the-badge&logo=android&logoColor=white)](../../releases/latest) [![Download Windows](https://img.shields.io/badge/⬇%20Download-Windows-2563eb?style=for-the-badge&logo=windows&logoColor=white)](../../releases/latest)
 
 **English** · [🇸🇦 العربية](README.ar.md)
 
@@ -39,9 +39,12 @@ does everything the stock web UI does — and much more — while keeping everyt
 
 | Platform | How to get it |
 |:--|:--|
-| 🪟 **Windows** | Prebuilt `.exe`, or build with `npm install && npm run dist:win`. See [DESKTOP.md](DESKTOP.md). |
-| 🤖 **Android** | Build a **free APK in the cloud** — steps below (no tools to install). |
+| 🪟 **Windows** | Download `ZTE-Router-Manager-Windows.zip` from [Releases](../../releases/latest) → unzip → run the `.exe`. |
+| 🤖 **Android** | Download `ZTE-Router-Manager.apk` from [Releases](../../releases/latest) → install. |
 | 🍎 **iOS** | Needs a Mac to build. See [MOBILE.md](MOBILE.md). |
+
+> Both are built and published automatically by GitHub Actions. If the Releases
+> page is empty, open the **Actions** tab and run **Build apps** once.
 
 ## 🤖 Build the Android APK (cloud — recommended)
 

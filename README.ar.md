@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/license-MIT-16a34a)](#-الرخصة)
 [![Privacy](https://img.shields.io/badge/privacy-local--only-059669)](#-الخصوصية-والأمان)
 
-### [![تنزيل تطبيق أندرويد](https://img.shields.io/badge/⬇%20تنزيل-Android%20APK-16a34a?style=for-the-badge)](../../releases/latest)
+### [![تنزيل أندرويد](https://img.shields.io/badge/⬇%20تنزيل-Android%20APK-16a34a?style=for-the-badge&logo=android&logoColor=white)](../../releases/latest) [![تنزيل ويندوز](https://img.shields.io/badge/⬇%20تنزيل-Windows-2563eb?style=for-the-badge&logo=windows&logoColor=white)](../../releases/latest)
 
 [🇬🇧 English](README.md) · **العربية**
 
@@ -38,9 +38,12 @@
 
 | المنصة | الطريقة |
 |:--|:--|
-| 🪟 **ويندوز** | ملف `.exe` جاهز، أو ابنِه بـ `npm install && npm run dist:win`. شوف [DESKTOP.md](DESKTOP.md). |
-| 🤖 **أندرويد** | ابنِ **APK مجاني بالسحابة** — الخطوات تحت (بدون تثبيت أدوات). |
+| 🪟 **ويندوز** | نزّل `ZTE-Router-Manager-Windows.zip` من [Releases](../../releases/latest) → فك الضغط → شغّل الـ `.exe`. |
+| 🤖 **أندرويد** | نزّل `ZTE-Router-Manager.apk` من [Releases](../../releases/latest) → ثبّته. |
 | 🍎 **آيفون** | يحتاج ماك للبناء. شوف [MOBILE.md](MOBILE.md). |
+
+> الاثنين يتبنون ويننشرون تلقائيًا عبر GitHub Actions. لو صفحة Releases فاضية،
+> افتح تبويب **Actions** وشغّل **Build apps** مرة وحدة.
 
 ## 🤖 بناء APK الأندرويد (سحابي — المفضّل)
 
