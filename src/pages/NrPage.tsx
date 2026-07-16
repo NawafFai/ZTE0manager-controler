@@ -119,7 +119,7 @@ export function NrPage() {
                 pending={unlockNr.isPending}
               />
             </div>
-            <MutationResult mutation={lockNr} />
+            <MutationResult mutation={lockNr} hintKey="result.hint.nrBand" />
             <MutationResult mutation={unlockNr} />
 
             <div className="border-t border-border pt-4">
@@ -138,7 +138,7 @@ export function NrPage() {
                   pending={lockNrMask.isPending}
                 />
               </div>
-              <MutationResult mutation={lockNrMask} />
+              <MutationResult mutation={lockNrMask} hintKey="result.hint.nrBand" />
             </div>
           </div>
         )}

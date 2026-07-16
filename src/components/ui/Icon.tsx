@@ -15,7 +15,9 @@ export type IconName =
   | 'refresh'
   | 'lock'
   | 'unlock'
-  | 'optimize';
+  | 'optimize'
+  | 'key'
+  | 'menu';
 
 const PATHS: Record<IconName, string> = {
   dashboard: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z',
@@ -35,6 +37,8 @@ const PATHS: Record<IconName, string> = {
   lock: 'M6 10V8a6 6 0 1112 0v2M5 10h14v10H5z',
   unlock: 'M7 10V8a5 5 0 019.6-2M5 10h14v10H5z',
   optimize: 'M12 2v3M12 19v3M2 12h3M19 12h3M12 8a4 4 0 100 8 4 4 0 000-8z',
+  key: 'M21 2l-2 2M11.4 11.6a5.5 5.5 0 11-7.8 7.8 5.5 5.5 0 017.8-7.8zM11.4 11.6L15.5 7.5l3 3L22 7l-3-3-3.5 3.5',
+  menu: 'M4 6h16M4 12h16M4 18h16',
 };
 
 export function Icon({

@@ -107,7 +107,7 @@ export function LtePage() {
                   pending={unlockLteBand.isPending}
                 />
               </div>
-              <MutationResult mutation={lockLteBand} />
+              <MutationResult mutation={lockLteBand} hintKey="result.hint.lteBand" />
               <MutationResult mutation={unlockLteBand} />
             </>
           )}
@@ -147,7 +147,7 @@ export function LtePage() {
                   pending={unlockCell.isPending}
                 />
               </div>
-              <MutationResult mutation={lockCell} />
+              <MutationResult mutation={lockCell} hintKey="result.hint.cell" />
               <MutationResult mutation={unlockCell} />
             </>
           )}

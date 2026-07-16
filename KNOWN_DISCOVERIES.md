@@ -2,7 +2,7 @@
 
 **Project:** ZTE Router Manager
 **Status:** Verified discoveries (experimentally confirmed unless noted)
-**Last Updated:** 2026-07-06
+**Last Updated:** 2026-07-17
 
 > This file is authoritative. Prefer experimentally verified results over
 > assumptions. When new APIs are discovered or verified, update this file and
@@ -165,6 +165,33 @@ VOIP_VOICE_WORK_TYPE_SET WIFI_ADVANCE_SET         MGMT_CONTROL_POWER_ON_SPEED
 OPERATION_MODE           UNLOCK_NETWORK           LTE_LOCK_CELL_SET
 WAN_PERFORM_NR5G_BAND_LOCK
 ```
+
+---
+
+## Feature Unlock candidate map (2026-07-17)
+
+The Feature Unlock page (`src/services/feature-unlock.ts`) resolves each
+logical lock feature against the discovered API database — a control renders
+only when one of these goformIds is actually present on the device:
+
+| Feature | Candidate goformIds (preferred first) | Driveable by lock-service |
+| --- | --- | --- |
+| LTE band lock | `BAND_SELECT` | yes |
+| LTE cell lock | `LTE_LOCK_CELL_SET` | yes |
+| NR band lock | `WAN_PERFORM_NR5G_BAND_LOCK` · `NR5G_BAND_SELECT` · `SET_NR5G_BAND_CONFIG` | first only |
+| NR cell lock | `NR5G_LOCK_CELL_SET` | yes (experimental) |
+| Network mode | `SET_BEARER_PREFERENCE` | yes |
+
+### `NR5G_LOCK_CELL_SET` (experimental — NOT on the reference MC801A1)
+
+Seen only in the decompiled Easy Control APK (other ZTE models); absent from
+the reference MC801A1 `service.js`, so on that device the feature correctly
+resolves as **unavailable**. `lockNrCell` sends params following the LTE
+cell-lock convention — `nr5g_pci_lock`, `nr5g_freq_lock` — with zeros to clear.
+**Param names unverified on real hardware** (the APK also references a
+`nr5g_cell_lock` field); verify against a device that ships this goformId
+before trusting it. `revertToAuto` fires the zeroed form best-effort with
+retry disabled, so the panic path stays fast on firmwares without the command.
 
 ---
 

@@ -72,27 +72,12 @@ jobs:
     if: always() # publish even if one platform failed
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Download build outputs
         uses: actions/download-artifact@v4
         with:
           path: release-files
-      - name: List downloaded files
-        run: ls -R release-files || echo "no artifacts"
       - name: Publish "latest" Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: latest
-          name: 'ZTE Router Manager — Downloads'
-          body: |
-            ## 📥 Downloads
-            - **Android:** `ZTE-Router-Manager.apk` — install on your phone (enable *Install unknown apps*).
-            - **Windows:** `ZTE-Router-Manager-Windows.zip` — unzip and run `ZTE Router Manager.exe` (no install).
-
-            Connect your device to the router's Wi‑Fi, open the app, enter your router password, and log in.
-            Rebuilt automatically from the latest source.
-          artifacts: 'release-files/**/*'
-          allowUpdates: true
-          replacesArtifacts: true
-          makeLatest: true
-          artifactErrorsFailBuild: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash .github/scripts/publish-release.sh

@@ -7,11 +7,14 @@ import {
   unlockLteBands,
   lockNrBands,
   unlockNrBands,
+  lockNrCell as lockNrCellOp,
+  unlockNrCell as unlockNrCellOp,
   setNrBandMask,
   setBearerPreference,
   setNetworkAuto,
   type BearerPreference,
   type LteCellLockRequest,
+  type NrCellLockRequest,
 } from '@/services';
 
 /**
@@ -67,6 +70,11 @@ export function useLockActions() {
     ...lockGuard('NR band mask'),
   });
   const unlockNr = useMutation({ mutationFn: () => unlockNrBands(client!), ...unlockGuard });
+  const lockNrCell = useMutation({
+    mutationFn: (req: NrCellLockRequest) => lockNrCellOp(client!, req),
+    ...lockGuard('NR cell lock'),
+  });
+  const unlockNrCell = useMutation({ mutationFn: () => unlockNrCellOp(client!), ...unlockGuard });
   const setMode = useMutation({
     mutationFn: (pref: BearerPreference) => setBearerPreference(client!, pref),
     ...lockGuard('Network mode'),
@@ -84,6 +92,8 @@ export function useLockActions() {
     lockNr,
     lockNrMask,
     unlockNr,
+    lockNrCell,
+    unlockNrCell,
     setMode,
     setAuto,
   };

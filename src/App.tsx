@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect, type ReactNode } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ConnectionGate } from '@/components/ConnectionGate';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Spinner } from '@/components/ui/primitives';
 import { useConnectionStore, useCredentialsStore } from '@/store';
 import { useSafeModeWatchdog } from '@/hooks';
@@ -12,6 +13,7 @@ import {
   NrPage,
   TowerPage,
   OptimizerPage,
+  FeatureUnlockPage,
   ApiExplorer,
   DeveloperMode,
   Settings,
@@ -41,6 +43,10 @@ export default function App() {
   // Safe Mode watchdog: auto-reverts risky locks if the connection drops.
   useSafeModeWatchdog();
 
+  // Reset the error boundary when the route changes, so navigating away from a
+  // page that threw recovers cleanly.
+  const location = useLocation();
+
   // "Remember me": auto-login on startup with the saved password.
   useEffect(() => {
     const { remember, password } = useCredentialsStore.getState();
@@ -52,6 +58,7 @@ export default function App() {
 
   return (
     <AppLayout>
+      <ErrorBoundary resetKey={location.pathname}>
       <Routes>
         <Route path="/" element={<Gated><Dashboard /></Gated>} />
         <Route path="/live" element={<Gated><LiveMonitor /></Gated>} />
@@ -59,6 +66,7 @@ export default function App() {
         <Route path="/nr" element={<Gated><NrPage /></Gated>} />
         <Route path="/tower" element={<Gated><TowerPage /></Gated>} />
         <Route path="/optimizer" element={<Gated><OptimizerPage /></Gated>} />
+        <Route path="/unlock" element={<Gated><FeatureUnlockPage /></Gated>} />
         <Route path="/explorer" element={<ApiExplorer />} />
         <Route
           path="/console"
@@ -71,6 +79,7 @@ export default function App() {
         <Route path="/developer" element={<DeveloperMode />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
+      </ErrorBoundary>
     </AppLayout>
   );
 }

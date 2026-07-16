@@ -144,6 +144,12 @@ export async function startMockRouter(
           values.lte_pci = p.get('lte_pci_lock') ?? values.lte_pci ?? '';
           values.lte_earfcn = p.get('lte_earfcn_lock') ?? values.lte_earfcn ?? '';
         }
+        // NR cell lock — exists on some models (Easy Control APK), not on the
+        // reference MC801A1; emulated here so the experimental path is testable.
+        if (authOk && goformId === 'NR5G_LOCK_CELL_SET') {
+          values.nr5g_pci_lock = p.get('nr5g_pci_lock') ?? '';
+          values.nr5g_freq_lock = p.get('nr5g_freq_lock') ?? '';
+        }
 
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify({ result: authOk ? 'success' : 'failure' }));

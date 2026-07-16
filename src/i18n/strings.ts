@@ -7,6 +7,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'app.title': 'ZTE Router Manager',
     'app.subtitle': 'Reverse Toolkit',
     'app.localonly': 'Local-only · No cloud · No telemetry',
+    'app.credit': 'by Eng. Nawaf',
 
     'group.Overview': 'Overview',
     'group.Radio': 'Radio',
@@ -72,6 +73,25 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'common.verified': 'verified',
     'common.experimental': 'experimental',
 
+    'result.applied': 'Applied successfully ✓',
+    'result.network':
+      "Couldn't reach the router — make sure you're on the router's Wi‑Fi and logged in, then try again.",
+    'result.failedTitle': "Couldn't apply this setting",
+    'result.failedBody':
+      'The router declined it. Your connection is safe and unchanged — try Auto or a different option.',
+    'result.hint.lteBand':
+      'This LTE band may not be available on your current tower. Auto usually gives the best result.',
+    'result.hint.nrBand':
+      'On 5G NSA the LTE anchor decides the NR band; if it isn’t offered here, locking it gives no 5G. Keep Auto for max speed.',
+    'result.hint.cell':
+      'That PCI/EARFCN may not match a nearby cell. Use the Tower Scanner to find valid values, or press Restore.',
+
+    'error.title': 'This page hit a snag',
+    'error.body':
+      'An unexpected error happened here — nothing on your router changed. Try again, or go back to the Dashboard.',
+    'error.retry': 'Try again',
+    'error.home': 'Dashboard',
+
     'nav./optimizer': 'Optimizer',
     'opt.title': 'Auto Optimizer',
     'opt.legend': 'What the numbers mean',
@@ -130,6 +150,36 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'opt.netmode.4g': '4G only (LTE)',
     'opt.netmode.5g': '5G only',
 
+    'nav./unlock': 'Feature Unlock',
+    'unlock.title': 'Feature Unlock',
+    'unlock.intro':
+      "Band & cell controls the stock ISP web UI hides. Nothing is assumed: the app crawls the router's own JavaScript, and a control appears only when its command really exists on this firmware.",
+    'unlock.rescan': 'Re-scan device',
+    'unlock.scanning': 'Scanning router firmware…',
+    'unlock.scanErrors': 'Some firmware files were unreachable — detection may be partial.',
+    'unlock.unavailable': 'Unavailable on this model',
+    'unlock.unavailableBody': 'None of the known command ids exist in this firmware:',
+    'unlock.undriveable':
+      'This firmware exposes a command variant this app cannot drive safely yet — try it manually from the API Console.',
+    'unlock.experimentalWarn':
+      'Not verified on this firmware. Safe Mode arms automatically and reverts if the connection drops.',
+    'unlock.restore': '🚨 Restore everything to Auto',
+    'unlock.restoreDesc':
+      'Clears cell locks, the LTE band lock and the NR band restriction, then returns the modem to automatic mode.',
+    'unlock.lteBand': 'LTE band lock',
+    'unlock.lteBand.desc': 'Restrict LTE to specific bands.',
+    'unlock.lteCell': 'LTE cell lock',
+    'unlock.lteCell.desc': 'Pin the modem to one LTE cell by PCI + EARFCN.',
+    'unlock.nrBand': '5G NR band lock',
+    'unlock.nrBand.desc':
+      'Restrict 5G NR to specific bands (comma list). On NSA the LTE anchor decides which NR bands are reachable.',
+    'unlock.nrCell': '5G NR cell lock',
+    'unlock.nrCell.desc': 'Pin the modem to one NR cell by PCI + NR-ARFCN.',
+    'unlock.netmode': 'Network mode',
+    'unlock.netmode.desc': 'Force 4G-only (helps when 5G is weak or congested) or return to automatic.',
+    'unlock.lock': 'Lock',
+    'unlock.unlockBtn': 'Unlock (auto)',
+
     'safe.title': 'Safe Mode',
     'safe.desc': 'If a lock drops the connection, auto-revert to auto after a timeout.',
     'safe.timeout': 'Revert timeout (seconds)',
@@ -145,6 +195,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'app.title': 'مدير راوتر ZTE',
     'app.subtitle': 'أداة الهندسة العكسية',
     'app.localonly': 'محلي فقط · بدون سحابة · بدون تتبّع',
+    'app.credit': 'تطوير: Eng. Nawaf',
 
     'group.Overview': 'نظرة عامة',
     'group.Radio': 'الراديو',
@@ -210,6 +261,25 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'common.verified': 'مؤكد',
     'common.experimental': 'تجريبي',
 
+    'result.applied': 'تم التطبيق بنجاح ✓',
+    'result.network':
+      'تعذّر الوصول للراوتر — تأكد أنك على واي‑فاي الراوتر ومسجّل الدخول، ثم حاول مرة ثانية.',
+    'result.failedTitle': 'تعذّر تطبيق هذا الإعداد',
+    'result.failedBody':
+      'الراوتر رفض العملية. اتصالك آمن وما تغيّر شي — جرّب الوضع التلقائي أو خيارًا ثانيًا.',
+    'result.hint.lteBand':
+      'قد لا يكون باند LTE هذا متاحًا على برجك الحالي. الوضع التلقائي عادةً يعطي أفضل نتيجة.',
+    'result.hint.nrBand':
+      'في 5G NSA خلية LTE هي اللي تحدد باند NR؛ لو مو متاح هنا، قفله ما يعطيك 5G. خلّه تلقائي لأقصى سرعة.',
+    'result.hint.cell':
+      'قد لا يطابق PCI/EARFCN خلية قريبة. استخدم ماسح الأبراج لإيجاد قيم صحيحة، أو اضغط استعادة.',
+
+    'error.title': 'صار خلل بسيط في هذه الصفحة',
+    'error.body':
+      'واجهنا خطأ غير متوقع هنا — ما تغيّر شي في راوترك. حاول مرة ثانية، أو ارجع للرئيسية.',
+    'error.retry': 'حاول مرة ثانية',
+    'error.home': 'الرئيسية',
+
     'nav./optimizer': 'المُحسِّن',
     'opt.title': 'المُحسِّن التلقائي',
     'opt.legend': 'وش تعني الأرقام',
@@ -267,6 +337,36 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'opt.netmode.auto': 'تلقائي (5G + 4G)',
     'opt.netmode.4g': '4G فقط (LTE)',
     'opt.netmode.5g': '5G فقط',
+
+    'nav./unlock': 'فتح الميزات',
+    'unlock.title': 'فتح الميزات',
+    'unlock.intro':
+      'أدوات الباند والخلية اللي تخفيها واجهة مزوّد الخدمة. ما فيه شي مفترض: التطبيق يفحص جافاسكربت الراوتر نفسه، والتحكم يظهر فقط إذا الأمر موجود فعلًا في هذا الفيرموير.',
+    'unlock.rescan': 'إعادة فحص الجهاز',
+    'unlock.scanning': 'جارٍ فحص فيرموير الراوتر…',
+    'unlock.scanErrors': 'تعذّر الوصول لبعض ملفات الفيرموير — قد يكون الاكتشاف ناقصًا.',
+    'unlock.unavailable': 'غير متوفر على هذا الموديل',
+    'unlock.unavailableBody': 'ولا أمر من الأوامر المعروفة موجود في هذا الفيرموير:',
+    'unlock.undriveable':
+      'هذا الفيرموير يستخدم نسخة أمر ما يقدر التطبيق يشغّلها بأمان بعد — جرّبها يدويًا من وحدة الـ API.',
+    'unlock.experimentalWarn':
+      'غير مؤكد على هذا الفيرموير. الوضع الآمن يتفعّل تلقائيًا ويرجّع الإعدادات لو انقطع الاتصال.',
+    'unlock.restore': '🚨 استعادة كل شيء للوضع التلقائي',
+    'unlock.restoreDesc':
+      'يمسح أقفال الخلايا وقفل باندات LTE وتقييد باندات NR، ثم يرجّع المودم للوضع التلقائي.',
+    'unlock.lteBand': 'قفل باندات LTE',
+    'unlock.lteBand.desc': 'حصر LTE على باندات محددة.',
+    'unlock.lteCell': 'قفل خلية LTE',
+    'unlock.lteCell.desc': 'تثبيت المودم على خلية LTE واحدة عبر PCI + EARFCN.',
+    'unlock.nrBand': 'قفل باندات 5G NR',
+    'unlock.nrBand.desc':
+      'حصر 5G NR على باندات محددة (قائمة بفواصل). في وضع NSA، خلية LTE هي اللي تحدد باندات NR المتاحة.',
+    'unlock.nrCell': 'قفل خلية 5G NR',
+    'unlock.nrCell.desc': 'تثبيت المودم على خلية NR واحدة عبر PCI + NR-ARFCN.',
+    'unlock.netmode': 'وضع الشبكة',
+    'unlock.netmode.desc': 'فرض 4G فقط (مفيد لما يكون 5G ضعيف أو مزحوم) أو الرجوع للتلقائي.',
+    'unlock.lock': 'قفل',
+    'unlock.unlockBtn': 'فتح (تلقائي)',
 
     'safe.title': 'الوضع الآمن',
     'safe.desc': 'لو القفل قطع الاتصال، يرجّع للوضع التلقائي بعد مهلة.',

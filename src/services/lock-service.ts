@@ -172,16 +172,58 @@ export function unlockNrBands(client: GoformClient): Promise<GoformSetResult> {
   return lockNrBands(client, NR_ALL_BANDS);
 }
 
+// --- NR cell lock (experimental — surfaced only when discovery finds it) -----
+
+/**
+ * NR (5G) cell lock via `NR5G_LOCK_CELL_SET`. This goformId is NOT present in
+ * the reference MC801A1 service.js — it comes from the decompiled Easy Control
+ * APK, which drives it on other ZTE models (see KNOWN_DISCOVERIES.md). Param
+ * names follow the LTE cell-lock convention (`nr5g_pci_lock`/`nr5g_freq_lock`)
+ * and are still unverified on real hardware (the APK also references a
+ * `nr5g_cell_lock` field), so the Feature Unlock page only renders this control
+ * when the command actually exists in the discovered database, and flags it
+ * experimental.
+ */
+export interface NrCellLockRequest {
+  pci: number;
+  /** NR-ARFCN of the target cell. */
+  arfcn: number;
+}
+
+export function lockNrCell(
+  client: GoformClient,
+  { pci, arfcn }: NrCellLockRequest,
+): Promise<GoformSetResult> {
+  return client.set({
+    goformId: 'NR5G_LOCK_CELL_SET',
+    params: { nr5g_pci_lock: pci, nr5g_freq_lock: arfcn },
+  });
+}
+
+/** Zeroed PCI/ARFCN clears the NR cell lock (same convention as LTE). */
+export function unlockNrCell(client: GoformClient, retry = true): Promise<GoformSetResult> {
+  return client.set({
+    goformId: 'NR5G_LOCK_CELL_SET',
+    params: { nr5g_pci_lock: 0, nr5g_freq_lock: 0 },
+    retry,
+  });
+}
+
 // --- Safe Mode revert --------------------------------------------------------
 
 /**
  * Return the radio to a free/auto state: clear the LTE cell lock and LTE band
  * lock (which restores service), then widen the NR band set. Each step is
  * best-effort so a partial failure still restores as much as possible.
+ *
+ * The NR cell unlock runs with retry disabled: firmwares without
+ * `NR5G_LOCK_CELL_SET` (like the reference MC801A1) answer `failure`, and the
+ * panic path must not burn 4 retries on a command that cannot succeed.
  */
 export async function revertToAuto(client: GoformClient): Promise<void> {
   const steps = [
     () => unlockLteCell(client),
+    () => unlockNrCell(client, false),
     () => unlockLteBands(client),
     () => unlockNrBands(client),
     // Restore auto RAT preference (all bands, prefer 5G) so a leftover "4G only"
