@@ -36,13 +36,18 @@ Rebuilt automatically from the latest source.
 EOF
 
 publish() {
-  if gh release view "$TAG" >/dev/null 2>&1; then
-    gh release edit "$TAG" --title "$TITLE" --notes-file "$NOTES_FILE" --latest || return 1
-  else
-    gh release create "$TAG" --title "$TITLE" --notes-file "$NOTES_FILE" --latest || return 1
+  # Make sure the "latest" release exists, then (re)upload the assets. We do NOT
+  # gate on `gh release view` (it proved unreliable on the runner): instead we
+  # try to create the release, and if it already exists — a 422 "tag_name
+  # already exists" — we just update its metadata and carry on. The final
+  # `gh release upload --clobber` is the operation that must succeed (it
+  # overwrites same-named assets so downloads always get the fresh build), so
+  # its exit status is what the retry loop below checks.
+  if ! gh release create "$TAG" --title "$TITLE" --notes-file "$NOTES_FILE" --latest >/dev/null 2>&1; then
+    echo "Release '$TAG' already exists — updating it."
+    gh release edit "$TAG" --title "$TITLE" --notes-file "$NOTES_FILE" --latest >/dev/null 2>&1 || true
   fi
-  # --clobber overwrites same-named assets so downloads always get the new build.
-  gh release upload "$TAG" dist-assets/* --clobber || return 1
+  gh release upload "$TAG" dist-assets/* --clobber
 }
 
 for attempt in 1 2 3 4; do
