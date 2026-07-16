@@ -2,15 +2,22 @@
 #
 # Publish the built apps to the "latest" GitHub Release — resiliently.
 #
-# Runs in the CI "release" job. Uses the pre-installed `gh` CLI with the
-# workflow's GITHUB_TOKEN, so there is no floating third-party release action to
-# break (the previous ncipollo@v1 step started failing in ~7 s at the API call).
-# Publishes whatever artifacts exist (so a one-platform failure still ships the
-# other) and retries to ride out transient GitHub API hiccups.
+# Runs in the CI "release" job. It talks to the GitHub REST API directly (via
+# `gh api` + curl) rather than the `gh release upload/view/edit` subcommands,
+# which on the runner fail to find an existing release even when it exists
+# (`create` reports "tag_name already exists" while `upload` reports "release
+# not found"). The REST endpoints work reliably, so we:
+#   1. find the existing "latest" release (or create it if missing),
+#   2. delete any same-named assets on it (a fresh upload otherwise 422s),
+#   3. upload each new asset to the uploads endpoint with curl.
+# Assets are updated in place, so a working release is never destroyed. We
+# publish whatever artifacts exist and retry to ride out transient hiccups.
 set -uo pipefail
 
 TAG="latest"
 TITLE="ZTE Router Manager — Downloads"
+REPO="${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
+SHA="${GITHUB_SHA:?GITHUB_SHA is required}"
 
 # actions/download-artifact@v4 nests each artifact under release-files/<name>/…
 # Flatten the app files we actually publish into one directory.
@@ -36,18 +43,47 @@ Rebuilt automatically from the latest source.
 EOF
 
 publish() {
-  # Make sure the "latest" release exists, then (re)upload the assets. We do NOT
-  # gate on `gh release view` (it proved unreliable on the runner): instead we
-  # try to create the release, and if it already exists — a 422 "tag_name
-  # already exists" — we just update its metadata and carry on. The final
-  # `gh release upload --clobber` is the operation that must succeed (it
-  # overwrites same-named assets so downloads always get the fresh build), so
-  # its exit status is what the retry loop below checks.
-  if ! gh release create "$TAG" --title "$TITLE" --notes-file "$NOTES_FILE" --latest >/dev/null 2>&1; then
-    echo "Release '$TAG' already exists — updating it."
-    gh release edit "$TAG" --title "$TITLE" --notes-file "$NOTES_FILE" --latest >/dev/null 2>&1 || true
+  local rid name aid http
+
+  # 1) Find the existing "latest" release; create it if it doesn't exist yet.
+  rid=$(gh api "repos/${REPO}/releases/tags/${TAG}" --jq '.id' 2>/dev/null || true)
+  if [ -z "${rid}" ]; then
+    echo "No '${TAG}' release yet — creating it."
+    rid=$(gh api -X POST "repos/${REPO}/releases" \
+      -f tag_name="${TAG}" \
+      -f target_commitish="${SHA}" \
+      -f name="${TITLE}" \
+      -f "body=$(cat "${NOTES_FILE}")" \
+      -f make_latest=true \
+      --jq '.id') || return 1
+  else
+    echo "Updating existing release id=${rid}."
+    # Refresh the notes/title on the existing release (best-effort).
+    gh api -X PATCH "repos/${REPO}/releases/${rid}" \
+      -f name="${TITLE}" -f "body=$(cat "${NOTES_FILE}")" -f make_latest=true \
+      >/dev/null 2>&1 || true
   fi
-  gh release upload "$TAG" dist-assets/* --clobber
+  [ -n "${rid}" ] || return 1
+
+  # 2+3) For each asset: remove any same-named asset, then upload the new one.
+  for f in dist-assets/*; do
+    name=$(basename "${f}")
+    aid=$(gh api "repos/${REPO}/releases/${rid}/assets" \
+      --jq ".[] | select(.name==\"${name}\") | .id" 2>/dev/null | head -n1 || true)
+    if [ -n "${aid}" ]; then
+      gh api -X DELETE "repos/${REPO}/releases/${rid}/assets/${aid}" >/dev/null 2>&1 || true
+    fi
+    echo "Uploading ${name} …"
+    http=$(curl -sS -w '%{http_code}' -o /dev/null -X POST \
+      -H "Authorization: Bearer ${GH_TOKEN}" \
+      -H "Content-Type: application/octet-stream" \
+      --data-binary @"${f}" \
+      "https://uploads.github.com/repos/${REPO}/releases/${rid}/assets?name=${name}")
+    if [ "${http}" != "201" ]; then
+      echo "Upload of ${name} failed (HTTP ${http})"
+      return 1
+    fi
+  done
 }
 
 for attempt in 1 2 3 4; do
