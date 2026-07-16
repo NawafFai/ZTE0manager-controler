@@ -5,7 +5,7 @@
   "description": "Advanced open-source manager for the hidden HTTP API of ZTE 5G routers (MC801A, MC888, MC889, MC8020, ...).",
   "type": "module",
   "license": "MIT",
-  "author": "ZTE Router Manager contributors",
+  "author": "Eng. Nawaf",
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",

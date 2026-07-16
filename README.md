@@ -13,6 +13,8 @@
 
 **English** · [🇸🇦 العربية](README.ar.md)
 
+**Created & maintained by [Eng. Nawaf](https://github.com/NawafFai)**
+
 </div>
 
 ---
@@ -32,6 +34,7 @@ does everything the stock web UI does — and much more — while keeping everyt
   - ⚖️ **Balance** — the strongest, most stable connection.
   - 📶 **Network** — switch 4G / 5G.
 - **🔒 LTE / 5G tools** — band lock, cell lock, and NR carrier‑aggregation combos (e.g. `n41 + n78`).
+- **🔓 Feature Unlock** — surfaces the band/cell‑lock controls your ISP's web UI hides. **Discovery‑based, never hardcoded:** the app reads your router's own firmware and shows a control only when that command really exists on your device — otherwise it says *"unavailable on this model"* instead of a dead button. Every lock is paired with Safe Mode auto‑revert and the 🚨 Restore button.
 - **🛟 Safe Mode** — auto‑reverts to Auto if a lock drops the connection for 60 s, plus a 🚨 one‑tap **Restore**.
 - **🧠 API Explorer / Console / Developer Mode** — automatically discovers the router's hidden commands.
 
@@ -71,4 +74,5 @@ telemetry, no accounts.** Your password is stored on your device only.
 
 ## 📄 License
 
-MIT — for use on routers you own or are authorized to manage.
+MIT © 2026 **Eng. Nawaf** — see [LICENSE](LICENSE). For use on routers you own
+or are authorized to manage.
