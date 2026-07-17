@@ -3,15 +3,14 @@
 # Publish the built apps to the "latest" GitHub Release — resiliently.
 #
 # Runs in the CI "release" job. It talks to the GitHub REST API directly (via
-# `gh api` + curl) rather than the `gh release upload/view/edit` subcommands,
-# which on the runner fail to find an existing release even when it exists
-# (`create` reports "tag_name already exists" while `upload` reports "release
-# not found"). The REST endpoints work reliably, so we:
-#   1. find the existing "latest" release (or create it if missing),
-#   2. delete any same-named assets on it (a fresh upload otherwise 422s),
-#   3. upload each new asset to the uploads endpoint with curl.
-# Assets are updated in place, so a working release is never destroyed. We
-# publish whatever artifacts exist and retry to ride out transient hiccups.
+# `gh api` + curl) rather than the `gh release upload/view` subcommands, which
+# on the runner fail to find an existing release even when it exists.
+#
+# Strategy: delete the existing "latest" release *entirely* (by id — which the
+# REST lookup reliably returns) plus its tag, then create a fresh, empty release
+# at the pushed commit and upload each asset. Recreating from empty avoids the
+# HTTP 422 "asset already_exists" you get when re-uploading over an existing
+# same-named asset. Retries absorb transient API hiccups.
 set -uo pipefail
 
 TAG="latest"
@@ -43,36 +42,32 @@ Rebuilt automatically from the latest source.
 EOF
 
 publish() {
-  local rid name aid http
+  local rid name http
 
-  # 1) Find the existing "latest" release; create it if it doesn't exist yet.
+  # 1) Delete the existing "latest" release (removes all its assets) + its tag.
   rid=$(gh api "repos/${REPO}/releases/tags/${TAG}" --jq '.id' 2>/dev/null || true)
-  if [ -z "${rid}" ]; then
-    echo "No '${TAG}' release yet — creating it."
-    rid=$(gh api -X POST "repos/${REPO}/releases" \
-      -f tag_name="${TAG}" \
-      -f target_commitish="${SHA}" \
-      -f name="${TITLE}" \
-      -f "body=$(cat "${NOTES_FILE}")" \
-      -f make_latest=true \
-      --jq '.id') || return 1
-  else
-    echo "Updating existing release id=${rid}."
-    # Refresh the notes/title on the existing release (best-effort).
-    gh api -X PATCH "repos/${REPO}/releases/${rid}" \
-      -f name="${TITLE}" -f "body=$(cat "${NOTES_FILE}")" -f make_latest=true \
-      >/dev/null 2>&1 || true
+  if [ -n "${rid}" ]; then
+    echo "Deleting existing release id=${rid} (and its assets)…"
+    gh api -X DELETE "repos/${REPO}/releases/${rid}" >/dev/null 2>&1 || true
   fi
-  [ -n "${rid}" ] || return 1
+  gh api -X DELETE "repos/${REPO}/git/refs/tags/${TAG}" >/dev/null 2>&1 || true
+  sleep 3
 
-  # 2+3) For each asset: remove any same-named asset, then upload the new one.
+  # 2) Create a fresh, empty release at the pushed commit.
+  echo "Creating fresh '${TAG}' release…"
+  rid=$(gh api -X POST "repos/${REPO}/releases" \
+    -f tag_name="${TAG}" \
+    -f target_commitish="${SHA}" \
+    -f name="${TITLE}" \
+    -f "body=$(cat "${NOTES_FILE}")" \
+    -f make_latest=true \
+    --jq '.id') || { echo "Create failed."; return 1; }
+  [ -n "${rid}" ] || { echo "No release id returned."; return 1; }
+  echo "Created release id=${rid}"
+
+  # 3) Upload each asset (fresh release → no same-name conflicts).
   for f in dist-assets/*; do
     name=$(basename "${f}")
-    aid=$(gh api "repos/${REPO}/releases/${rid}/assets" \
-      --jq ".[] | select(.name==\"${name}\") | .id" 2>/dev/null | head -n1 || true)
-    if [ -n "${aid}" ]; then
-      gh api -X DELETE "repos/${REPO}/releases/${rid}/assets/${aid}" >/dev/null 2>&1 || true
-    fi
     echo "Uploading ${name} …"
     http=$(curl -sS -w '%{http_code}' -o /dev/null -X POST \
       -H "Authorization: Bearer ${GH_TOKEN}" \
@@ -83,6 +78,7 @@ publish() {
       echo "Upload of ${name} failed (HTTP ${http})"
       return 1
     fi
+    echo "Uploaded ${name} ✓"
   done
 }
 
