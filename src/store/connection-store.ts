@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { GoformClient } from '@/api';
+import { HiLinkClient } from '@/api/hilink-client';
 import { isNativePlatform, DEFAULT_ROUTER_URL } from '@/api/transport';
 import type { DeviceInfo } from '@/types';
 import { readDeviceInfo, login as apiLogin, type LoginResult } from '@/services';
@@ -32,11 +33,33 @@ interface ConnectionState {
   refreshIdentity: () => Promise<void>;
 }
 
-function createClient(baseUrl: string): GoformClient {
+function effectiveBaseUrl(baseUrl: string): string {
   // On native there is no proxy, so talk to the router directly. Fall back to the
   // default router address when the user hasn't set one.
-  const effectiveBaseUrl = isNativePlatform() ? baseUrl || DEFAULT_ROUTER_URL : baseUrl;
-  return new GoformClient({ baseUrl: effectiveBaseUrl, onTraffic: devLogSink });
+  return isNativePlatform() ? baseUrl || DEFAULT_ROUTER_URL : baseUrl;
+}
+
+function createClient(baseUrl: string): GoformClient {
+  return new GoformClient({ baseUrl: effectiveBaseUrl(baseUrl), onTraffic: devLogSink });
+}
+
+/**
+ * Protocol detection: ZTE goform first (the app's native protocol), then a
+ * Huawei HiLink probe (5G CPE 5 / H155 answers XML on /api). Returns the
+ * client that answered together with the identity it reported.
+ */
+async function detectClient(baseUrl: string): Promise<{ client: GoformClient; device: DeviceInfo }> {
+  const zte = createClient(baseUrl);
+  try {
+    return { client: zte, device: await readDeviceInfo(zte) };
+  } catch (zteErr) {
+    const hilink = new HiLinkClient({ baseUrl: effectiveBaseUrl(baseUrl), onTraffic: devLogSink });
+    try {
+      return { client: hilink, device: await readDeviceInfo(hilink) };
+    } catch {
+      throw zteErr; // neither protocol answered — report the primary error
+    }
+  }
 }
 
 export const useConnectionStore = create<ConnectionState>()(
@@ -55,8 +78,7 @@ export const useConnectionStore = create<ConnectionState>()(
       connect: async () => {
         set({ status: 'connecting', error: null });
         try {
-          const client = createClient(get().baseUrl);
-          const device = await readDeviceInfo(client);
+          const { client, device } = await detectClient(get().baseUrl);
           const router = resolveRouter(device);
           client.setAuthStrategy(router.authStrategy);
           // cr_version is only readable on an authenticated session.

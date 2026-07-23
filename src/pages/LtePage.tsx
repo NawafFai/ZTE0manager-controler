@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Field, MetricTile, Spinner, EmptyState } from '@/components/ui/primitives';
+import { Card, Field, MetricTile, Spinner, EmptyState, Notice } from '@/components/ui/primitives';
 import { BandSelector } from '@/components/BandSelector';
 import { ConfirmButton } from '@/components/ConfirmButton';
 import { useRadioSnapshot, useLockActions } from '@/hooks';
@@ -12,6 +12,7 @@ const LTE_BANDS = [1, 2, 3, 4, 5, 7, 8, 12, 13, 17, 18, 19, 20, 25, 26, 28, 32, 
 export function LtePage() {
   const radio = useRadioSnapshot(2_000);
   const caps = useConnectionStore((s) => s.router?.capabilities);
+  const carrierLocked = useConnectionStore((s) => s.router?.plugin.id === 'huawei-h155');
   const { lockCell, unlockCell, lockLteBand, unlockLteBand } = useLockActions();
 
   const [bands, setBands] = useState<Set<number>>(new Set());
@@ -54,6 +55,15 @@ export function LtePage() {
 
   return (
     <div className="space-y-5">
+      {carrierLocked && (
+        <Notice tone="warn" title="بعض قيم LTE مقفلة من مشغّل الشبكة · Some LTE values are carrier-locked">
+          هذا الراوتر (فيرموير المشغّل) لا يتيح الإشارة التفصيلية (RSRP / RSRQ / SINR)، ولا رقم التردد/الخلية،
+          ولا قفل الترددات/الخلية — فتظهر فارغة (—). المتاح فعليًا: حالة الاتصال، نوع الشبكة (5G / LTE)،
+          وأعمدة الإشارة في صفحة «الرئيسية». · Detailed dBm signal, band/cell IDs and band/cell lock aren't
+          exposed by this carrier firmware; connection state, network type and signal bars are.
+        </Notice>
+      )}
+
       <Card title="LTE serving cell">
         {!snap ? (
           <Spinner label="Reading LTE…" />
@@ -86,7 +96,11 @@ export function LtePage() {
           actions={<span className="chip border-warn/50 text-warn">experimental</span>}
         >
           {caps && !caps.lteBandLock ? (
-            <EmptyState title="Not supported on this model" />
+            <EmptyState title={carrierLocked ? 'مقفل من المشغّل · Carrier-locked' : 'Not supported on this model'}>
+              {carrierLocked
+                ? 'مشغّل الشبكة يمنع اختيار الترددات على هذا الراوتر. · Band selection is disabled by the carrier firmware.'
+                : undefined}
+            </EmptyState>
           ) : (
             <>
               <p className="mb-3 text-xs text-content-muted">
@@ -115,7 +129,11 @@ export function LtePage() {
 
         <Card title="Cell lock" actions={<span className="chip border-good/50 text-good">verified</span>}>
           {caps && !caps.lteCellLock ? (
-            <EmptyState title="Not supported on this model" />
+            <EmptyState title={carrierLocked ? 'مقفل من المشغّل · Carrier-locked' : 'Not supported on this model'}>
+              {carrierLocked
+                ? 'قفل الخلية غير متاح على فيرموير المشغّل لهذا الراوتر. · Cell lock is disabled by the carrier firmware.'
+                : undefined}
+            </EmptyState>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-3">

@@ -1,4 +1,5 @@
 import type { RouterPlugin } from './types';
+import { huaweiH155Plugin } from './huawei-h155';
 
 /**
  * Concrete model families. Each is a thin declaration — capabilities plus
@@ -60,4 +61,5 @@ export const MODEL_PLUGINS: readonly RouterPlugin[] = [
   mc888Plugin,
   mc889Plugin,
   mc8020Plugin,
+  huaweiH155Plugin,
 ];

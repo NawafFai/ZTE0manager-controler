@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, Spinner } from '@/components/ui/primitives';
+import { Card, Spinner, Notice } from '@/components/ui/primitives';
 import { useOptimizer, useRecovery, useLockActions } from '@/hooks';
 import { MutationResult } from '@/components/MutationResult';
 import { ConfirmButton } from '@/components/ConfirmButton';
@@ -14,7 +14,7 @@ import {
   type Candidate,
 } from '@/services';
 import type { OptGoal } from '@/signals/optimizer';
-import { useClient } from '@/store';
+import { useClient, useConnectionStore } from '@/store';
 import { qualityColor, classify } from '@/signals/quality';
 import { orDash } from '@/utils/format';
 import { useT } from '@/i18n';
@@ -127,6 +127,7 @@ function ResultsRow({
 export function OptimizerPage() {
   const t = useT();
   const client = useClient();
+  const carrierLocked = useConnectionStore((s) => s.router?.plugin.id === 'huawei-h155');
   const { running, progress, results, error, run, cancel, applyBest } = useOptimizer();
   const { recover, recovering, lastResult } = useRecovery();
   const { setMode, setAuto } = useLockActions();
@@ -164,6 +165,15 @@ export function OptimizerPage() {
 
   return (
     <div className="space-y-5">
+      {carrierLocked && (
+        <Notice tone="warn" title="المحسّن يحتاج تحكّم بالترددات المقفول من المشغّل · Optimizer needs carrier-locked controls">
+          المحسّن يشتغل بقفل/تبديل الترددات وقياس الإشارة التفصيلية — وكلها مقفلة من فيرموير المشغّل على هذا الراوتر،
+          فلن تعمل نتائجه هنا. يعمل بالكامل على راوتر غير مقفول (ZTE أو هواوي مفتوح). · The optimizer drives band
+          locking + detailed signal sampling, all disabled by this carrier firmware; it works fully on an
+          unlocked router.
+        </Notice>
+      )}
+
       {/* Persistent current status — the lock is real and stays until you change it */}
       <div className="card flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-semibold">{t('opt.currentStatus')}</span>

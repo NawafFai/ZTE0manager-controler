@@ -81,4 +81,4 @@ export function httpRequest(req: HttpRequest): Promise<HttpResult> {
 }
 
 /** Default router address used on native (no proxy) — editable in Settings. */
-export const DEFAULT_ROUTER_URL = 'http://192.168.0.1';
+export const DEFAULT_ROUTER_URL = 'http://192.168.8.1';

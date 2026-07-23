@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Card, Spinner, EmptyState } from '@/components/ui/primitives';
+import { Card, Spinner, EmptyState, Notice } from '@/components/ui/primitives';
 import { ConfirmButton } from '@/components/ConfirmButton';
 import { MutationResult } from '@/components/MutationResult';
+import { useConnectionStore } from '@/store';
 import { useTowerScan, useLockActions } from '@/hooks';
 import { qualityColor, classify } from '@/signals/quality';
 import type { NeighborCell } from '@/types';
@@ -14,6 +15,7 @@ export function TowerPage() {
   const scan = useTowerScan(true, auto ? 5_000 : false);
   const { lockCell, unlockCell } = useLockActions();
   const [selected, setSelected] = useState<NeighborCell | null>(null);
+  const carrierLocked = useConnectionStore((s) => s.router?.plugin.id === 'huawei-h155');
   const t = useT();
 
   const cells = scan.data ?? [];
@@ -21,6 +23,13 @@ export function TowerPage() {
 
   return (
     <div className="space-y-5">
+      {carrierLocked && (
+        <Notice tone="warn" title="مسح الأبراج مقفل من مشغّل الشبكة · Tower scan is carrier-locked">
+          فيرموير المشغّل لهذا الراوتر لا يتيح قائمة الخلايا المجاورة ولا بيانات الخلية التفصيلية، فلن تظهر أبراج
+          هنا. هذه الميزة تعمل بالكامل على راوتر غير مقفول (ZTE أو هواوي مفتوح). · The neighbour-cell / cell-info
+          endpoints are disabled by this carrier firmware, so no towers can be listed on this device.
+        </Notice>
+      )}
       <Card
         title={t('tower.title')}
         actions={

@@ -22,8 +22,13 @@ const path = require('path');
 const { URL } = require('url');
 
 const DIST_DIR = path.join(__dirname, '..', 'dist');
-const DEFAULT_HOST = process.env.ZTE_ROUTER_HOST || 'http://192.168.0.1';
-const PROXY_PREFIXES = ['/goform', '/js', '/app', '/adm', '/img', '/language', '/style', '/css'];
+const DEFAULT_HOST = process.env.ZTE_ROUTER_HOST || 'http://192.168.8.1';
+// ZTE firmware paths + Huawei HiLink paths (5G CPE 5 / H155-383 serves its UI
+// from /lib, /res, ... and its XML API from /api — all must stay same-origin).
+const PROXY_PREFIXES = [
+  '/goform', '/js', '/app', '/adm', '/img', '/language', '/style', '/css',
+  '/api', '/lib', '/res', '/config', '/locale', '/lang', '/fonts', '/html', '/favicon.ico',
+];
 const ROUTER_MOUNT = '/__router'; // exposes the router's own root (login page)
 
 let mainWindow = null;

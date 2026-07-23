@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, Field, MetricTile, Spinner, EmptyState } from '@/components/ui/primitives';
+import { Card, Field, MetricTile, Spinner, EmptyState, Notice } from '@/components/ui/primitives';
 import { BandSelector } from '@/components/BandSelector';
 import { ConfirmButton } from '@/components/ConfirmButton';
 import { MutationResult } from '@/components/MutationResult';
@@ -14,6 +14,7 @@ const NR_BANDS = [1, 3, 5, 7, 8, 20, 25, 28, 38, 40, 41, 66, 71, 77, 78, 79];
 export function NrPage() {
   const radio = useRadioSnapshot(2_000);
   const caps = useConnectionStore((s) => s.router?.capabilities);
+  const carrierLocked = useConnectionStore((s) => s.router?.plugin.id === 'huawei-h155');
   const client = useClient();
   const { lockNr, lockNrMask, unlockNr } = useLockActions();
 
@@ -42,15 +43,22 @@ export function NrPage() {
 
   return (
     <div className="space-y-5">
-      <Card title="NR diagnostics (screenshot this for band-lock fix)">
-        <p className="mb-2 text-xs text-content-muted">
-          تشخيص NR — صوّر هذي القيم لي عشان أفك ترميز قفل الباند بدقة · Screenshot these raw values.
-        </p>
-        <Field label="Current NR mask (wan_nr5g_band_lock)" value={orDash(nrDiag.data?.wan_nr5g_band_lock)} />
-        <Field label="NR mask (nr5g_band_lock)" value={orDash(nrDiag.data?.nr5g_band_lock)} />
-        <Field label="Supported NR bands (nr5g_band_list)" value={orDash(nrDiag.data?.nr5g_band_list)} />
-        <Field label="Serving NR band now" value={orDash(snap?.nr.band)} />
-      </Card>
+      {carrierLocked ? (
+        <Notice tone="warn" title="بعض قيم 5G مقفلة من مشغّل الشبكة · Some 5G values are carrier-locked">
+          فيرموير المشغّل لهذا الراوتر لا يتيح الإشارة التفصيلية للـ5G (RSRP / RSRQ / SINR)، ولا رقم التردد/الخلية،
+          ولا قفل الترددات — فتظهر فارغة (—). لكن **حالة 5G** (مثل ENDC) و**المشغّل** و**أعمدة الإشارة** حقيقية وتظهر
+          في «الرئيسية». · Detailed 5G dBm signal, band/cell IDs and band lock aren't exposed by this carrier
+          firmware; the 5G connection state, operator and signal bars are real.
+        </Notice>
+      ) : (
+        <Card title="NR diagnostics">
+          <p className="mb-2 text-xs text-content-muted">Raw NR band-lock encoding read from the device.</p>
+          <Field label="Current NR mask (wan_nr5g_band_lock)" value={orDash(nrDiag.data?.wan_nr5g_band_lock)} />
+          <Field label="NR mask (nr5g_band_lock)" value={orDash(nrDiag.data?.nr5g_band_lock)} />
+          <Field label="Supported NR bands (nr5g_band_list)" value={orDash(nrDiag.data?.nr5g_band_list)} />
+          <Field label="Serving NR band now" value={orDash(snap?.nr.band)} />
+        </Card>
+      )}
 
       <Card title="NR (5G) serving cell">
         {!snap ? (
@@ -79,7 +87,11 @@ export function NrPage() {
         actions={<span className="chip border-good/50 text-good">verified</span>}
       >
         {caps && !caps.nrBandLock ? (
-          <EmptyState title="Not supported on this model" />
+          <EmptyState title={carrierLocked ? 'مقفل من المشغّل · Carrier-locked' : 'Not supported on this model'}>
+            {carrierLocked
+              ? 'قفل ترددات 5G غير متاح على فيرموير المشغّل لهذا الراوتر. · 5G band lock is disabled by the carrier firmware.'
+              : undefined}
+          </EmptyState>
         ) : (
           <div className="space-y-4">
             <p className="rounded-lg border border-brand/30 bg-brand/10 p-2 text-xs text-content-muted">

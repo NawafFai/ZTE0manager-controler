@@ -113,3 +113,22 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
     </div>
   );
 }
+
+/** Inline info / warning banner used to explain state (e.g. carrier-locked data). */
+export function Notice({
+  tone = 'info',
+  title,
+  children,
+}: {
+  tone?: 'info' | 'warn';
+  title?: ReactNode;
+  children: ReactNode;
+}) {
+  const toneCls = tone === 'warn' ? 'border-warn/40 bg-warn/10' : 'border-brand/30 bg-brand/10';
+  return (
+    <div className={`rounded-lg border ${toneCls} p-3 text-sm text-content-muted`}>
+      {title && <div className="mb-1 font-medium text-content">{title}</div>}
+      {children}
+    </div>
+  );
+}
