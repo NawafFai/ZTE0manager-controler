@@ -4,7 +4,7 @@ The same React app is packaged for phones with **Capacitor**. On mobile there is
 no proxy, so the app talks to the router **directly over native HTTP**
 (`src/api/transport.ts` uses `CapacitorHttp`, which bypasses the browser CORS
 sandbox, sets the `Referer`/`Origin` the firmware requires, and keeps the login
-cookie). The app auto-discovers the router (`192.168.0.1` → `192.168.8.1` →
+cookie). The app auto-discovers the router (`192.168.0.1` → `192.168.100.1` → `192.168.8.1` →
 `192.168.1.1`); set the address on the login screen or in **Settings** only if
 yours differs.
 

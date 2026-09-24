@@ -68,7 +68,7 @@ does everything the stock web UI does — and much more — while keeping everyt
 **"Login failed" / can't log in?**
 
 1. **Be on the router's network.** Connect this device to the router's Wi‑Fi (or LAN) first — the app talks directly to the router.
-2. **The app finds the router automatically.** It probes `192.168.0.1` (ZTE), `192.168.8.1` (Huawei) and `192.168.1.1`. If yours uses a different address: on **Windows** use the **Router → Set Router IP…** menu; on **Android** the login screen shows an address field whenever the router can't be reached.
+2. **The app finds the router automatically.** It probes `192.168.0.1` and `192.168.100.1` (ZTE), `192.168.8.1` (Huawei) and `192.168.1.1`. If yours uses a different address: on **Windows** use the **Router → Set Router IP…** menu; on **Android** the login screen shows an address field whenever the router can't be reached.
 3. **"Could not reach the router"** means a connection problem (wrong network/address) — your password was never checked. **"Wrong password"** means the router itself rejected it: use the same admin password as the router's own web page.
 4. **"Another user is already logged in"** — close the router's web page in other tabs/devices (ZTE allows a single admin session), wait a minute, and retry.
 5. **Old APK?** Releases before v0.2.0 had a bug that blocked all router traffic on Android — download the current APK from [Releases](../../releases/latest).

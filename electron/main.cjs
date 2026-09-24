@@ -25,7 +25,12 @@ const DIST_DIR = path.join(__dirname, '..', 'dist');
 // ZTE factory IP first — this is a ZTE manager. Auto-discovery (below) probes
 // the other candidates when nothing answers here, so Huawei users still work.
 const DEFAULT_HOST = process.env.ZTE_ROUTER_HOST || 'http://192.168.0.1';
-const CANDIDATE_HOSTS = ['http://192.168.0.1', 'http://192.168.8.1', 'http://192.168.1.1'];
+const CANDIDATE_HOSTS = [
+  'http://192.168.0.1',
+  'http://192.168.100.1',
+  'http://192.168.8.1',
+  'http://192.168.1.1',
+];
 // ZTE firmware paths + Huawei HiLink paths (5G CPE 5 / H155-383 serves its UI
 // from /lib, /res, ... and its XML API from /api — all must stay same-origin).
 const PROXY_PREFIXES = [

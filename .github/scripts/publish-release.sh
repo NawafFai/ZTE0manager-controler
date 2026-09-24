@@ -41,7 +41,7 @@ Connect your device to the router's Wi‑Fi, open the app, enter your router pas
 
 ### What's new (v0.2.0) — login fixes / إصلاحات تسجيل الدخول
 - **Android could not reach the router at all** (cleartext HTTP was blocked) — fixed. If you installed an older APK, replace it with this one.
-- The app now **auto-discovers the router address** (192.168.0.1 → 192.168.8.1 → 192.168.1.1) on Windows and Android.
+- The app now **auto-discovers the router address** (192.168.0.1 → 192.168.100.1 → 192.168.8.1 → 192.168.1.1) on Windows and Android.
 - Clear errors: "could not reach the router" is no longer reported as "Login failed", and the login screen lets you fix the address on the spot.
 - Older ZTE firmwares that use the legacy (Base64) login now work too, and a wrong password is never retried into the router's lockout.
 - إصلاح شامل لمشكلة «فشل تسجيل الدخول»: نسخة أندرويد القديمة كانت ممنوعة من الوصول للراوتر نهائيًا، والآن التطبيق يلقى عنوان الراوتر تلقائيًا ويعرض سبب الخطأ الحقيقي.

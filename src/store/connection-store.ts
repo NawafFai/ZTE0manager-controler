@@ -80,7 +80,7 @@ async function detectAt(baseUrl: string): Promise<Detected> {
  * which owns the target address — a single detection attempt is all there is.
  * On native (Android/iOS) the app talks to the router directly, so when the
  * configured address doesn't answer we probe the known factory addresses
- * (ZTE 192.168.0.1, Huawei 192.168.8.1, then 192.168.1.1) with short timeouts
+ * (ZTE 192.168.0.1 / 192.168.100.1, Huawei 192.168.8.1, then 192.168.1.1) with short timeouts
  * and adopt the first that speaks either protocol. This is what turns
  * "Login failed forever" into "just works" for a fresh install.
  */

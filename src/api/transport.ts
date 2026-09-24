@@ -99,11 +99,13 @@ export const DEFAULT_ROUTER_URL = 'http://192.168.0.1';
 
 /**
  * Addresses tried in order by router auto-discovery when the configured one
- * doesn't answer: ZTE factory (192.168.0.1), Huawei HiLink factory
- * (192.168.8.1), then the common home-gateway fallback (192.168.1.1).
+ * doesn't answer: ZTE factory (192.168.0.1), ZTE alternate factory used by
+ * ONT/CPE firmwares (192.168.100.1), Huawei HiLink factory (192.168.8.1), then
+ * the common home-gateway fallback (192.168.1.1).
  */
 export const CANDIDATE_ROUTER_URLS = [
   'http://192.168.0.1',
+  'http://192.168.100.1',
   'http://192.168.8.1',
   'http://192.168.1.1',
 ] as const;
