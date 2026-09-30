@@ -11,6 +11,7 @@ import {
 } from '@/signals/optimizer';
 import { formatLteBand, formatNrBand } from '@/signals/band-mask';
 import { readRadioSnapshot } from './radio-service';
+import { isConnectionHealthy } from './device-service';
 import {
   lockLteBands,
   lockNrBands,
@@ -55,7 +56,12 @@ export interface OptProgress {
 
 export interface OptOptions {
   goal: OptGoal;
+  /** Minimum pause after applying a lock, so the modem starts re-attaching. */
   settleMs?: number;
+  /** Max time to wait for the data link to come back after applying a lock. */
+  linkTimeoutMs?: number;
+  /** How often the link is polled while waiting. */
+  linkPollMs?: number;
   samples?: number;
   sampleIntervalMs?: number;
   /** Gaming mode: measures latency for each candidate after it settles. */
@@ -92,6 +98,33 @@ async function sampleRadio(
   return averageSamples(samples);
 }
 
+/**
+ * Wait until the modem reports a connected data link on two consecutive polls.
+ * Switching a band makes the modem detach and re-attach, which takes far longer
+ * than a fixed pause on a busy tower; measuring before that finishes reports a
+ * healthy band as "100% loss". Resolves false if the link never came back.
+ */
+async function waitForLink(
+  client: GoformClient,
+  timeoutMs: number,
+  pollMs: number,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  let healthyInARow = 0;
+  while (Date.now() < deadline) {
+    healthyInARow = (await isConnectionHealthy(client)) ? healthyInARow + 1 : 0;
+    if (healthyInARow >= 2) return true;
+    await delay(pollMs, signal);
+  }
+  return false;
+}
+
+const isAbort = (err: unknown): boolean => err instanceof DOMException && err.name === 'AbortError';
+
+/** A candidate that shows no service / no traffic gets one more, longer chance. */
+const MEASURE_ATTEMPTS = 2;
+
 export async function runOptimization(
   client: GoformClient,
   candidates: Candidate[],
@@ -99,7 +132,9 @@ export async function runOptimization(
 ): Promise<BenchResult[]> {
   const {
     goal,
-    settleMs = 6000,
+    settleMs = 4000,
+    linkTimeoutMs = 45000,
+    linkPollMs = 1500,
     samples = 4,
     sampleIntervalMs = 1500,
     latencyProbe,
@@ -115,7 +150,8 @@ export async function runOptimization(
     onProgress?.({ phase: 'applying', index, total: candidates.length, candidate });
     try {
       await candidate.apply(client);
-    } catch {
+    } catch (err) {
+      if (isAbort(err)) throw err;
       results.push({ candidate, sample: emptySample(), score: 0, applied: false });
       continue;
     }
@@ -123,11 +159,23 @@ export async function runOptimization(
     onProgress?.({ phase: 'settling', index, total: candidates.length, candidate });
     await delay(settleMs, signal);
 
-    onProgress?.({ phase: 'sampling', index, total: candidates.length, candidate });
-    const sample = await sampleRadio(client, samples, sampleIntervalMs, signal);
-    const latency = latencyProbe ? await latencyProbe(signal) : undefined;
-    const score =
-      goal === 'gaming' && latency ? scoreGaming(sample, latency) : scoreSample(goal, sample);
+    let sample = emptySample();
+    let latency: LatencyStats | undefined;
+    let score = 0;
+    for (let attempt = 0; attempt < MEASURE_ATTEMPTS && score === 0; attempt += 1) {
+      await waitForLink(client, linkTimeoutMs, linkPollMs, signal);
+      onProgress?.({ phase: 'sampling', index, total: candidates.length, candidate });
+      try {
+        sample = await sampleRadio(client, samples, sampleIntervalMs, signal);
+        latency = latencyProbe ? await latencyProbe(signal) : undefined;
+      } catch (err) {
+        if (isAbort(err)) throw err;
+        sample = emptySample();
+        latency = undefined;
+      }
+      score =
+        goal === 'gaming' && latency ? scoreGaming(sample, latency) : scoreSample(goal, sample);
+    }
     const result: BenchResult = { candidate, sample, score, applied: false, ...(latency ? { latency } : {}) };
     results.push(result);
     onProgress?.({ phase: 'candidate-done', index, total: candidates.length, candidate, result });
@@ -136,6 +184,23 @@ export async function runOptimization(
   results.sort((a, b) => b.score - a.score);
   onProgress?.({ phase: 'complete', index: candidates.length, total: candidates.length });
   return results;
+}
+
+/** A candidate must beat the Auto baseline by this many points to be worth locking. */
+export const WIN_MARGIN = 5;
+
+/**
+ * Pick what to apply after a run. Locking a single band gives up carrier
+ * aggregation, so Auto is the default and a lock must clearly beat it — a
+ * marginal or unmeasurable "win" is noise and would leave the user worse off.
+ * `results` must be sorted best-first (as `runOptimization` returns them).
+ */
+export function chooseWinner(results: BenchResult[]): BenchResult | null {
+  const best = results[0];
+  if (!best || best.score <= 0) return null;
+  const baseline = results.find((r) => r.candidate.kind === 'auto');
+  if (baseline && baseline.score > 0 && best.score < baseline.score + WIN_MARGIN) return baseline;
+  return best;
 }
 
 /** Re-apply a candidate (e.g. the winner) and mark it applied. */

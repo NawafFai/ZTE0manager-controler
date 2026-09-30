@@ -1,4 +1,4 @@
-import type { LatencyStats } from '@/signals/optimizer';
+import { summarizeLatency, type LatencyStats } from '@/signals/optimizer';
 
 /**
  * Browser-based latency probe used by the gaming optimizer.
@@ -19,45 +19,64 @@ function normalizeTarget(input: string): string {
   return /^https?:\/\//i.test(s) ? s : `https://${s}`;
 }
 
+/** One timed request; resolves to the round-trip in ms, or null on timeout/error. */
+async function timedRequest(
+  url: string,
+  nonce: string,
+  timeoutMs: number,
+  signal?: AbortSignal,
+): Promise<number | null> {
+  const controller = new AbortController();
+  const onAbort = () => controller.abort();
+  signal?.addEventListener('abort', onAbort, { once: true });
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const start = performance.now();
+  try {
+    await fetch(`${url}${url.includes('?') ? '&' : '?'}_=${nonce}`, {
+      mode: 'no-cors',
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+    return performance.now() - start;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', onAbort);
+  }
+}
+
+const WARMUP_ATTEMPTS = 6;
+
+/**
+ * The first request on a fresh connection also pays DNS + TCP + TLS (3–4 round
+ * trips) and the radio may still be waking up right after a band switch. That
+ * cost is not the ping a game sees, so we first send UNTIMED warm-up requests
+ * until one succeeds, and only then measure `count` requests on the warm
+ * connection. If no warm-up ever succeeds the link is dead → 100% loss.
+ */
 export async function measureLatency(
   target: string,
   count = 6,
-  timeoutMs = 2500,
+  timeoutMs = 3000,
   signal?: AbortSignal,
 ): Promise<LatencyStats> {
   const url = normalizeTarget(target);
-  const times: number[] = [];
-  let lost = 0;
 
+  let warm = false;
+  for (let i = 0; i < WARMUP_ATTEMPTS && !warm; i += 1) {
+    if (signal?.aborted) break;
+    warm = (await timedRequest(url, `w${Date.now()}${i}`, timeoutMs, signal)) !== null;
+  }
+  if (!warm) return summarizeLatency([], count);
+
+  const times: number[] = [];
   for (let i = 0; i < count; i += 1) {
     if (signal?.aborted) break;
-    const controller = new AbortController();
-    const onAbort = () => controller.abort();
-    signal?.addEventListener('abort', onAbort, { once: true });
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const start = performance.now();
-    try {
-      await fetch(`${url}${url.includes('?') ? '&' : '?'}_=${Date.now()}${i}`, {
-        mode: 'no-cors',
-        cache: 'no-store',
-        signal: controller.signal,
-      });
-      times.push(performance.now() - start);
-    } catch {
-      lost += 1;
-    } finally {
-      clearTimeout(timer);
-      signal?.removeEventListener('abort', onAbort);
-    }
+    const t = await timedRequest(url, `${Date.now()}${i}`, timeoutMs, signal);
+    if (t !== null) times.push(t);
     // small gap so we sample jitter rather than back-to-back
     await new Promise((r) => setTimeout(r, 150));
   }
-
-  const avgMs = times.length ? times.reduce((a, b) => a + b, 0) / times.length : null;
-  const jitterMs =
-    times.length > 1 && avgMs !== null
-      ? Math.sqrt(times.reduce((a, b) => a + (b - avgMs) ** 2, 0) / times.length)
-      : null;
-
-  return { avgMs, jitterMs, lossPct: (lost / count) * 100, samples: count };
+  return summarizeLatency(times, count);
 }

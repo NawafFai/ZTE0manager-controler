@@ -16,7 +16,7 @@ is shipped, and the few genuine open items. Last updated **2026-09-24**.
   `tsc`/`vitest`/`vite build` still work. If the Electron binary is missing:
   `node node_modules/electron/install.js`. CI (clean Ubuntu/Windows) has no such guard.
 - **Gates (must stay green):** `npx tsc --noEmit` · `npm run lint` (`--max-warnings 0`) ·
-  `npx vitest run` (**85 tests / 11 files**) · `npm run build`.
+  `npx vitest run` (**101 tests / 12 files**) · `npm run build`.
 - Desktop package: `npm run dist:win` → `release/ZTE Router Manager-win32-x64/ZTE Router Manager.exe`.
 - Android locally: `npm run apk:debug` (runs `scripts/patch-android.mjs` after `cap add`).
 - Icons: `npm run icons` (regenerates from `resources/icon.svg`).

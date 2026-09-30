@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildSnapshot } from './signal-engine';
+import { buildSnapshot, isCaActive } from './signal-engine';
 
 describe('buildSnapshot', () => {
   // Values mirror the reference capture in KNOWN_DISCOVERIES.md.
@@ -45,5 +45,21 @@ describe('buildSnapshot', () => {
   it('marks missing metrics rather than emitting NaN', () => {
     expect(snap.lte.cqi.missing).toBe(true);
     expect(snap.lte.cqi.value).toBeNull();
+  });
+});
+
+describe('isCaActive', () => {
+  it.each([
+    ['ca_activated', true],
+    ['activated', true],
+    ['1', true],
+    ['ca_deactivated', false],
+    ['deactivated', false],
+    ['0', false],
+    ['none', false],
+    ['', false],
+    [null, false],
+  ])('wan_lte_ca %j → %s', (raw, expected) => {
+    expect(isCaActive(raw)).toBe(expected);
   });
 });

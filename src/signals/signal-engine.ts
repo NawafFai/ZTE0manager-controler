@@ -53,9 +53,7 @@ const ALIASES = {
 } as const;
 
 /** Every command the signal engine reads (union of all aliases), deduplicated. */
-export const SIGNAL_COMMANDS: readonly string[] = [
-  ...new Set(Object.values(ALIASES).flat()),
-];
+export const SIGNAL_COMMANDS: readonly string[] = [...new Set(Object.values(ALIASES).flat())];
 
 type AliasKey = keyof typeof ALIASES;
 
@@ -167,6 +165,14 @@ function buildCarriers(lte: LteMetrics, nr: NrMetrics): CarrierComponent[] {
   return carriers;
 }
 
+/**
+ * `wan_lte_ca` reads `ca_activated` / `ca_deactivated`; a loose /activ/ match
+ * treated the deactivated state as active.
+ */
+export function isCaActive(raw: string | null): boolean {
+  return !isPlaceholder(raw) && /^(?:ca_)?activated?$|^(?:1|on|true)$/i.test((raw ?? '').trim());
+}
+
 /** Pure transform: raw firmware map → normalized, classified snapshot. */
 export function buildSnapshot(raw: GoformGetResult, timestamp = Date.now()): RadioSnapshot {
   const lte = buildLte(raw);
@@ -182,6 +188,6 @@ export function buildSnapshot(raw: GoformGetResult, timestamp = Date.now()): Rad
     lte,
     nr,
     carriers: buildCarriers(lte, nr),
-    caActive: !isPlaceholder(caRaw) && /activ|on|1|true/i.test(caRaw ?? ''),
+    caActive: isCaActive(caRaw),
   };
 }

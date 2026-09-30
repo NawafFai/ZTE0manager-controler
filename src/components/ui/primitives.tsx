@@ -56,10 +56,10 @@ export function MetricTile({ label, metric }: { label: string; metric: Metric })
     <StatTile
       label={label}
       value={
-        <span>
+        <span className="num">
           {value}
           {!metric.missing && metric.unit && (
-            <span className="ml-1 text-xs text-content-muted">{metric.unit}</span>
+            <span className="ms-1 text-xs text-content-muted">{metric.unit}</span>
           )}
         </span>
       }
@@ -91,7 +91,7 @@ export function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-border/60 py-1.5 last:border-0">
       <span className="text-xs uppercase tracking-wide text-content-muted">{label}</span>
-      <span className="text-right font-mono text-sm text-content">{value ?? '—'}</span>
+      <span className="num text-end font-mono text-sm text-content">{value ?? '—'}</span>
     </div>
   );
 }
