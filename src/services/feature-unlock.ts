@@ -19,11 +19,7 @@ import type { ApiCommand, ApiConfidence, ApiDatabase } from '@/types';
  */
 
 export type UnlockFeatureId =
-  | 'lteBandLock'
-  | 'lteCellLock'
-  | 'nrBandLock'
-  | 'nrCellLock'
-  | 'networkMode';
+  'lteBandLock' | 'lteCellLock' | 'nrBandLock' | 'nrCellLock' | 'networkMode';
 
 export interface UnlockCandidate {
   goformId: string;

@@ -176,7 +176,13 @@ export async function runOptimization(
       score =
         goal === 'gaming' && latency ? scoreGaming(sample, latency) : scoreSample(goal, sample);
     }
-    const result: BenchResult = { candidate, sample, score, applied: false, ...(latency ? { latency } : {}) };
+    const result: BenchResult = {
+      candidate,
+      sample,
+      score,
+      applied: false,
+      ...(latency ? { latency } : {}),
+    };
     results.push(result);
     onProgress?.({ phase: 'candidate-done', index, total: candidates.length, candidate, result });
   }
@@ -209,7 +215,15 @@ export async function applyCandidate(client: GoformClient, candidate: Candidate)
 }
 
 function emptySample(): RadioSample {
-  return { sinr: null, rsrp: null, rsrq: null, caActive: false, band: null, mode: 'NO_SERVICE', bandwidthMhz: null };
+  return {
+    sinr: null,
+    rsrp: null,
+    rsrq: null,
+    caActive: false,
+    band: null,
+    mode: 'NO_SERVICE',
+    bandwidthMhz: null,
+  };
 }
 
 // --- candidate builders ------------------------------------------------------
@@ -256,8 +270,7 @@ export function cellCandidates(cells: NeighborCell[]): Candidate[] {
       id: `cell-${c.pci}-${c.earfcnArfcn}`,
       label: `PCI ${c.pci} @ ${c.earfcnArfcn}`,
       kind: 'lte-cell' as const,
-      apply: (client: GoformClient) =>
-        lockLteCell(client, { pci: c.pci!, earfcn: c.earfcnArfcn! }),
+      apply: (client: GoformClient) => lockLteCell(client, { pci: c.pci!, earfcn: c.earfcnArfcn! }),
     }));
 }
 

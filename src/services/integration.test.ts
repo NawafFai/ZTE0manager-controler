@@ -212,13 +212,17 @@ describe('end-to-end against a simulated ZTE router', () => {
     expect(lteCell!.params.lte_pci_lock).toBe('0');
     expect(lteCell!.params.lte_earfcn_lock).toBe('0');
     expect(nrCell!.params.nr5g_pci_lock).toBe('0');
-    expect(bandSelect!.params.is_lte_band).toBe('0');
+    // Auto = flag ON + the all-bands mask. is_lte_band=0 / mask 0x0 left the modem
+    // with an empty band mask (no internet).
+    expect(bandSelect!.params.is_lte_band).toBe('1');
+    expect(bandSelect!.params.lte_band_mask).toBe('0xa3e2ab0908df');
     // NR "auto" = a wide comma-separated band-NUMBER list (never a hex mask).
     const nrList = (nrBands!.params.nr5g_band_mask ?? '').split(',').map(Number);
     expect(nrList.length).toBeGreaterThan(5);
     expect(nrList).toContain(78);
     expect(nrBands!.params.nr5g_band_mask).not.toMatch(/^0x/i);
-    expect(bearer!.params.BearerPreference).toBeTruthy();
+    // Only values from the router's real option list may ever be sent.
+    expect(['4G_AND_5G', 'WL_AND_5G', 'LTE_AND_5G']).toContain(bearer!.params.BearerPreference);
   });
 
   it('rejects an unsigned mutating request (auth is really enforced)', async () => {

@@ -5,6 +5,7 @@ import { summarizeLatency, type LatencyStats } from '@/signals/optimizer';
 import {
   chooseWinner,
   isConnectionHealthy,
+  readLockStatus,
   runOptimization,
   WIN_MARGIN,
   type BenchResult,
@@ -19,7 +20,15 @@ afterEach(async () => {
 
 const result = (id: string, kind: Candidate['kind'], score: number): BenchResult => ({
   candidate: { id, label: id, kind, apply: async () => ({ result: 'success' }) },
-  sample: { sinr: 10, rsrp: -90, rsrq: null, caActive: false, band: null, mode: 'LTE', bandwidthMhz: null },
+  sample: {
+    sinr: 10,
+    rsrp: -90,
+    rsrq: null,
+    caActive: false,
+    band: null,
+    mode: 'LTE',
+    bandwidthMhz: null,
+  },
   score,
   applied: false,
 });
@@ -37,7 +46,12 @@ describe('summarizeLatency', () => {
   });
 
   it('reports 100% loss when nothing came back', () => {
-    expect(summarizeLatency([], 6)).toEqual({ avgMs: null, jitterMs: null, lossPct: 100, samples: 6 });
+    expect(summarizeLatency([], 6)).toEqual({
+      avgMs: null,
+      jitterMs: null,
+      lossPct: 100,
+      samples: 6,
+    });
   });
 
   it('counts lost requests', () => {
@@ -120,5 +134,18 @@ describe('isConnectionHealthy', () => {
     router = await startMockRouter({ ppp_status: ppp });
     const client = new GoformClient({ baseUrl: router.url });
     expect(await isConnectionHealthy(client)).toBe(expected);
+  });
+});
+
+describe('lock status of a dead LTE mask', () => {
+  it.each([
+    ['0x0', true],
+    ['0', true],
+    ['0x180080800c5', false],
+    ['', false],
+  ])('lte_band_lock %j → anyLocked=%s', async (mask, locked) => {
+    router = await startMockRouter({ lte_band_lock: mask });
+    const client = new GoformClient({ baseUrl: router.url });
+    expect((await readLockStatus(client)).anyLocked).toBe(locked);
   });
 });

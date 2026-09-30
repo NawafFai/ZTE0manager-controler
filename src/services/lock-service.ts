@@ -1,6 +1,12 @@
 import type { GoformClient } from '@/api/goform-client';
 import type { GoformSetResult } from '@/types';
-import { maskFromBands, maskToHex, parseMask, bandsFromMask } from '@/signals/band-mask';
+import {
+  LTE_ALL_BANDS_MASK,
+  maskFromBands,
+  maskToHex,
+  parseMask,
+  bandsFromMask,
+} from '@/signals/band-mask';
 import { toStringOrNull } from '@/signals/parse';
 import { setNetworkAuto } from './device-service';
 
@@ -36,6 +42,10 @@ function isMaskSet(v: string | null): boolean {
   return v !== null && v !== '' && v !== '0' && v.toLowerCase() !== '0x0';
 }
 
+function isZeroMask(v: string | null): boolean {
+  return v !== null && /^(0x)?0+$/i.test(v.trim());
+}
+
 /** A band lock restricts to a small set; auto reports the full supported mask. */
 const RESTRICTIVE_MAX_BANDS = 4;
 
@@ -66,10 +76,14 @@ export async function readLockStatus(client: GoformClient): Promise<LockStatus> 
   // so we treat it as a lock only when it restricts to a small set of bands.
   const cellLocked = isMaskSet(lteCellLock);
   const lockedLteBands = decodeRestrictiveBands(lteBandLock);
-  const anyLocked = cellLocked || lockedLteBands.length > 0;
+  // An explicit all-zero LTE mask means NO band is allowed (dead link), which
+  // is a lock the user must be told about — not "free".
+  const lteBlocked = isZeroMask(lteBandLock);
+  const anyLocked = cellLocked || lockedLteBands.length > 0 || lteBlocked;
 
   let summary = 'Auto (free)';
-  if (cellLocked) summary = `Cell PCI ${lteCellLock}`;
+  if (lteBlocked) summary = 'No LTE bands allowed (mask 0)';
+  else if (cellLocked) summary = `Cell PCI ${lteCellLock}`;
   else if (lockedLteBands.length > 0) summary = lockedLteBands.map((b) => `B${b}`).join(' + ');
 
   return { lteBandLock, nrBandLock, lteCellLock, lockedLteBands, cellLocked, anyLocked, summary };
@@ -124,15 +138,20 @@ export function lockLteBands(
   });
 }
 
-/** Unlock LTE = let the modem choose freely (is_lte_band=0). */
+/**
+ * Unlock LTE = allow every band. The MC801A has no "auto" flag: community
+ * band-lock scripts implement AUTO as `is_lte_band=1` with the all-bands mask.
+ * The previous `is_lte_band=0` + `0x0` was the wrong encoding and could leave
+ * the modem with an EMPTY band mask — no LTE service, i.e. no internet.
+ */
 export function unlockLteBands(client: GoformClient): Promise<GoformSetResult> {
   return client.set({
     goformId: 'BAND_SELECT',
     params: {
       is_gw_band: 0,
       gw_band_mask: '0x0',
-      is_lte_band: 0,
-      lte_band_mask: '0x0',
+      is_lte_band: 1,
+      lte_band_mask: maskToHex(LTE_ALL_BANDS_MASK),
     },
   });
 }
