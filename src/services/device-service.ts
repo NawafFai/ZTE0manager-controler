@@ -156,7 +156,9 @@ export async function isConnectionHealthy(client: GoformClient): Promise<boolean
     const r = await client.get({ cmd: ['ppp_status', 'network_type'] });
     const ppp = (r.ppp_status ?? '').toLowerCase();
     const nt = (r.network_type ?? '').toUpperCase();
-    const connected = ppp.includes('connect');
+    // ZTE reports ppp_connected / ipv4_ipv6_connected, but also ppp_disconnected,
+    // ppp_connecting and ppp_disconnecting — all of which contain "connect".
+    const connected = /(^|_)connected$/.test(ppp);
     const hasService = nt !== '' && !nt.includes('NO_SERVICE') && !nt.includes('NO SERVICE');
     return connected && hasService;
   } catch {

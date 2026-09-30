@@ -32,6 +32,28 @@ export interface RadioSample {
   bandwidthMhz: number | null;
 }
 
+/**
+ * Reduce raw round-trip times to comparable latency stats.
+ *  - `avgMs` is the MEDIAN: a single slow request (retransmit, radio wake-up)
+ *    must not drag the figure away from the ping a game actually sees.
+ *  - `jitterMs` is the mean absolute difference between consecutive samples
+ *    (RFC 3550 style), not the standard deviation — a constant offset is not jitter.
+ */
+export function summarizeLatency(timesMs: number[], attempted: number): LatencyStats {
+  const lossPct = attempted > 0 ? ((attempted - timesMs.length) / attempted) * 100 : 100;
+  if (timesMs.length === 0) return { avgMs: null, jitterMs: null, lossPct, samples: attempted };
+  const sorted = [...timesMs].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const avgMs = sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
+  let jitterMs: number | null = null;
+  if (timesMs.length > 1) {
+    let sum = 0;
+    for (let i = 1; i < timesMs.length; i += 1) sum += Math.abs(timesMs[i]! - timesMs[i - 1]!);
+    jitterMs = sum / (timesMs.length - 1);
+  }
+  return { avgMs, jitterMs, lossPct, samples: attempted };
+}
+
 function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }

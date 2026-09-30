@@ -257,7 +257,9 @@ export function OptimizerPage() {
                   : 'border-warn/40 bg-warn/10 text-warn'
               }`}
             >
-              {lastResult.ok ? `✅ ${t('opt.freed')}` : `⚠ ${t('opt.freedPartial')}`}
+              {lastResult.ok
+                ? `✅ ${t('opt.freed')}`
+                : `⚠ ${t('opt.freedPartial')}${lastResult.remaining ? ` (${lastResult.remaining})` : ''}`}
             </p>
           )}
 
@@ -286,7 +288,7 @@ export function OptimizerPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-content-muted">
+                <tr className="text-start text-xs uppercase tracking-wide text-content-muted">
                   <th className="py-2 pe-3">Option</th>
                   <th className="py-2 pe-3">Band</th>
                   {gaming && (

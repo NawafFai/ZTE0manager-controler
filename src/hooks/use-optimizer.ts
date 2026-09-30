@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useClient, useRuntimeStore, useSafeModeStore } from '@/store';
 import {
   applyCandidate,
+  chooseWinner,
   measureLatency,
   revertToAuto,
   runOptimization,
@@ -29,6 +30,7 @@ export function useOptimizer() {
   const qc = useQueryClient();
   const setMutating = useRuntimeStore((s) => s.setMutating);
   const armSafeMode = useSafeModeStore((s) => s.arm);
+  const disarmSafeMode = useSafeModeStore((s) => s.disarm);
   const abortRef = useRef<AbortController | null>(null);
   const [state, setState] = useState<OptimizerState>({
     running: false,
@@ -66,19 +68,25 @@ export function useOptimizer() {
               results: progress.result ? [...s.results, progress.result] : s.results,
             })),
         });
-        // Auto-apply the winner; if nothing had service, restore auto instead of
-        // leaving the modem stuck on a dead band.
-        const best = results[0];
-        if (best && best.score > 0) {
-          await applyCandidate(client, best.candidate);
-          best.applied = true;
-          armSafeMode(`Optimizer: ${best.candidate.label}`);
+        // Apply the winner only if it clearly beats Auto; if nothing had
+        // service, restore auto instead of leaving the modem on a dead band.
+        const winner = chooseWinner(results);
+        if (winner) {
+          await applyCandidate(client, winner.candidate);
+          winner.applied = true;
+          if (winner.candidate.kind === 'auto') disarmSafeMode();
+          else armSafeMode(`Optimizer: ${winner.candidate.label}`);
         } else {
           await revertToAuto(client);
+          disarmSafeMode();
         }
         setState((s) => ({ ...s, running: false, results }));
       } catch (err) {
         const aborted = err instanceof DOMException && err.name === 'AbortError';
+        // A cancelled/failed run leaves the modem on whichever candidate was
+        // being tested — put it back on auto.
+        await revertToAuto(client).catch(() => undefined);
+        disarmSafeMode();
         setState((s) => ({
           ...s,
           running: false,
@@ -89,7 +97,7 @@ export function useOptimizer() {
         qc.invalidateQueries({ queryKey: ['radio'] });
       }
     },
-    [client, qc, setMutating, armSafeMode],
+    [client, qc, setMutating, armSafeMode, disarmSafeMode],
   );
 
   const cancel = useCallback(() => abortRef.current?.abort(), []);
