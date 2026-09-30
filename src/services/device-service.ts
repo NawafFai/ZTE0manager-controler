@@ -97,11 +97,7 @@ export function rebootDevice(client: GoformClient) {
  */
 export type BearerPreference = string;
 
-export function setBearerPreference(
-  client: GoformClient,
-  pref: BearerPreference,
-  retry = true,
-) {
+export function setBearerPreference(client: GoformClient, pref: BearerPreference, retry = true) {
   return client.set({
     goformId: 'SET_BEARER_PREFERENCE',
     params: { BearerPreference: pref },
@@ -116,22 +112,15 @@ export async function readNetworkMode(client: GoformClient): Promise<string | nu
 }
 
 /**
- * "Auto" (all RATs, prefer 5G) has no single documented value across firmwares,
- * so we probe the known candidates once (each without retry, so it's fast) and
- * cache the first that the router accepts. Wrong candidates just return
- * `failure` and change nothing.
+ * "Auto" (5G + 4G) uses the router's own BearerPreference vocabulary. Only values
+ * from the ZTE firmware's real option list are tried (community-documented list:
+ * `4G_AND_5G` is the "Auto" entry, `LTE_AND_5G` = 5G NSA, `WL_AND_5G` adds 3G).
+ * Invented strings must never be sent: firmware that stores an unknown value
+ * leaves the modem with no valid RAT preference and no service. `Only_5G` (SA)
+ * is deliberately absent — it can drop the link entirely on NSA networks.
+ * Each candidate is tried once without retry; the first the router accepts is cached.
  */
-// 5G-inclusive values first so "Auto" always keeps NR5G enabled (the user's SIM
-// + router are 5G). Values that might prefer 3G/4G-only are intentionally omitted.
-const AUTO_CANDIDATES = [
-  'NR5G_preferred',
-  'NR5G_LTE_WCDMA_GSM',
-  'GSM_WCDMA_LTE_NR5G',
-  'WCDMA_AND_LTE_AND_NR5G',
-  'LTE_AND_NR5G',
-  'NETWORK_auto',
-  'AUTO',
-];
+const AUTO_CANDIDATES = ['4G_AND_5G', 'WL_AND_5G', 'LTE_AND_5G'];
 let cachedAutoValue: string | null = null;
 
 export async function setNetworkAuto(client: GoformClient): Promise<GoformSetResult> {

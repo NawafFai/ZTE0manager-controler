@@ -5,6 +5,7 @@ import {
   type GoformSetResult,
   type SetCommandRequest,
 } from '@/types';
+import { LTE_ALL_BANDS_MASK } from '@/signals/band-mask';
 import { GoformClient, type GoformClientConfig, type GoformTrafficEvent } from './goform-client';
 import { httpRequest } from './transport';
 import { HiLinkApiError, buildHiLinkRequest, parseHiLinkXml } from './hilink-xml';
@@ -116,7 +117,9 @@ export class HiLinkClient extends GoformClient {
       // --- LTE band lock → net-mode LTEBand (preserve RAT + other bands) ---
       case 'BAND_SELECT': {
         const lteBand =
-          String(p.is_lte_band) === '1' ? lteMaskToHuawei(String(p.lte_band_mask)) : LTE_BAND_ALL;
+          String(p.is_lte_band) === '1' && BigInt(String(p.lte_band_mask)) !== LTE_ALL_BANDS_MASK
+            ? lteMaskToHuawei(String(p.lte_band_mask))
+            : LTE_BAND_ALL;
         return this.applyNetMode((m) => ({ ...m, lteBand }));
       }
 
@@ -130,7 +133,7 @@ export class HiLinkClient extends GoformClient {
       // --- RAT preference (Only_LTE / auto) → NetworkMode ---
       case 'SET_BEARER_PREFERENCE': {
         const pref = String(p.BearerPreference ?? '').toUpperCase();
-        const networkMode = pref.includes('LTE') && !pref.includes('NR') ? NET_MODE_LTE_ONLY : NET_MODE_AUTO;
+        const networkMode = pref === 'ONLY_LTE' ? NET_MODE_LTE_ONLY : NET_MODE_AUTO;
         return this.applyNetMode((m) => ({ ...m, networkMode }));
       }
 
@@ -260,7 +263,16 @@ export class HiLinkClient extends GoformClient {
     ]);
 
     const state: HiLinkState = {
-      basic, loginState, status, traffic, info, signal, plmn, netMode, nbr, sec,
+      basic,
+      loginState,
+      status,
+      traffic,
+      info,
+      signal,
+      plmn,
+      netMode,
+      nbr,
+      sec,
     };
     return hiLinkToCommands(state);
   }
@@ -358,7 +370,16 @@ export class HiLinkClient extends GoformClient {
         await this.ensureSession();
         return this.apiPost(path, fields, attempt + 1);
       }
-      this.traffic('POST', path, this.loggable(path, fields), started, false, undefined, undefined, err);
+      this.traffic(
+        'POST',
+        path,
+        this.loggable(path, fields),
+        started,
+        false,
+        undefined,
+        undefined,
+        err,
+      );
       throw err;
     }
   }

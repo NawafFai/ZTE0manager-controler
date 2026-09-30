@@ -7,6 +7,13 @@
  * value `lte_band_lock = 0x180080800c5` from the knowledge base.
  */
 
+/**
+ * "All LTE bands" for the MC801A family, as sent by the community band-lock
+ * scripts for their AUTO option (`is_lte_band=1` + this mask). Bits for bands a
+ * given modem lacks are ignored by the modem.
+ */
+export const LTE_ALL_BANDS_MASK = 0xa3e2ab0908dfn;
+
 export function bandsFromMask(mask: bigint): number[] {
   const bands: number[] = [];
   let bit = 0n;
