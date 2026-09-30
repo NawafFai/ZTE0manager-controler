@@ -83,18 +83,24 @@ function ResultsRow({
   const t = useT();
   return (
     <tr className={`border-t border-border/60 ${best ? 'bg-good/10' : ''}`}>
-      <td className="py-2 pe-3 font-mono">{r.candidate.label}</td>
+      <td className="py-2 pe-3 font-mono">
+        <span className="num">{r.candidate.label}</span>
+      </td>
       <td className="py-2 pe-3">{orDash(r.sample.band)}</td>
       {gaming && (
         <>
           <td className="py-2 pe-3 font-mono">
-            {r.latency?.avgMs != null ? `${Math.round(r.latency.avgMs)}ms` : '—'}
+            <span className="num">
+              {r.latency?.avgMs != null ? `${Math.round(r.latency.avgMs)}ms` : '—'}
+            </span>
           </td>
           <td className="py-2 pe-3 font-mono">
-            {r.latency?.jitterMs != null ? `${Math.round(r.latency.jitterMs)}ms` : '—'}
+            <span className="num">
+              {r.latency?.jitterMs != null ? `${Math.round(r.latency.jitterMs)}ms` : '—'}
+            </span>
           </td>
           <td className="py-2 pe-3 font-mono">
-            {r.latency ? `${Math.round(r.latency.lossPct)}%` : '—'}
+            <span className="num">{r.latency ? `${Math.round(r.latency.lossPct)}%` : '—'}</span>
           </td>
         </>
       )}
@@ -102,20 +108,26 @@ function ResultsRow({
         className="py-2 pe-3 font-mono"
         style={{ color: qualityColor(classify('sinr', r.sample.sinr)) }}
       >
-        {r.sample.sinr === null ? '—' : r.sample.sinr.toFixed(1)}
+        <span className="num">{r.sample.sinr === null ? '—' : r.sample.sinr.toFixed(1)}</span>
       </td>
       <td
         className="py-2 pe-3 font-mono"
         style={{ color: qualityColor(classify('rsrp', r.sample.rsrp)) }}
       >
-        {r.sample.rsrp === null ? '—' : r.sample.rsrp.toFixed(0)}
+        <span className="num">{r.sample.rsrp === null ? '—' : r.sample.rsrp.toFixed(0)}</span>
       </td>
-      <td className="py-2 pe-3 font-mono font-semibold">{r.score}</td>
+      <td className="py-2 pe-3 font-mono font-semibold">
+        <span className="num">{r.score}</span>
+      </td>
       <td className="py-2">
         {r.applied ? (
           <span className="chip border-good/50 text-good">{t('opt.applied')}</span>
         ) : (
-          <button className="btn-ghost px-2 py-1 text-xs" onClick={onApply} disabled={r.score === 0}>
+          <button
+            className="btn-ghost px-2 py-1 text-xs"
+            onClick={onApply}
+            disabled={r.score === 0}
+          >
             {t('opt.applyBest')}
           </button>
         )}
@@ -143,7 +155,11 @@ export function OptimizerPage() {
   });
 
   const gamingCands = useMemo(
-    () => [autoCandidate(), ...nrBandCandidates(GAMING_NR_BANDS), ...lteBandCandidates(GAMING_LTE_BANDS)],
+    () => [
+      autoCandidate(),
+      ...nrBandCandidates(GAMING_NR_BANDS),
+      ...lteBandCandidates(GAMING_LTE_BANDS),
+    ],
     [],
   );
   const balanceCands = useMemo(
@@ -157,7 +173,9 @@ export function OptimizerPage() {
   };
 
   const progressPct = progress
-    ? Math.round(((progress.index + (progress.phase === 'candidate-done' ? 1 : 0)) / progress.total) * 100)
+    ? Math.round(
+        ((progress.index + (progress.phase === 'candidate-done' ? 1 : 0)) / progress.total) * 100,
+      )
     : 0;
 
   const gamerEta = Math.ceil((gamingCands.length * PER_CANDIDATE_SECONDS) / 60);
@@ -166,11 +184,14 @@ export function OptimizerPage() {
   return (
     <div className="space-y-5">
       {carrierLocked && (
-        <Notice tone="warn" title="المحسّن يحتاج تحكّم بالترددات المقفول من المشغّل · Optimizer needs carrier-locked controls">
-          المحسّن يشتغل بقفل/تبديل الترددات وقياس الإشارة التفصيلية — وكلها مقفلة من فيرموير المشغّل على هذا الراوتر،
-          فلن تعمل نتائجه هنا. يعمل بالكامل على راوتر غير مقفول (ZTE أو هواوي مفتوح). · The optimizer drives band
-          locking + detailed signal sampling, all disabled by this carrier firmware; it works fully on an
-          unlocked router.
+        <Notice
+          tone="warn"
+          title="المحسّن يحتاج تحكّم بالترددات المقفول من المشغّل · Optimizer needs carrier-locked controls"
+        >
+          المحسّن يشتغل بقفل/تبديل الترددات وقياس الإشارة التفصيلية — وكلها مقفلة من فيرموير المشغّل
+          على هذا الراوتر، فلن تعمل نتائجه هنا. يعمل بالكامل على راوتر غير مقفول (ZTE أو هواوي
+          مفتوح). · The optimizer drives band locking + detailed signal sampling, all disabled by
+          this carrier firmware; it works fully on an unlocked router.
         </Notice>
       )}
 
@@ -191,9 +212,14 @@ export function OptimizerPage() {
       {running ? (
         <Card title={t('opt.title')}>
           <div className="space-y-3">
-            <Spinner label={`${t('opt.running')} ${progress?.candidate?.label ?? ''} (${progress?.phase ?? ''})`} />
+            <Spinner
+              label={`${t('opt.running')} ${progress?.candidate?.label ?? ''} (${progress?.phase ?? ''})`}
+            />
             <div className="h-2 w-full overflow-hidden rounded bg-surface-3">
-              <div className="h-full bg-brand transition-all" style={{ width: `${progressPct}%` }} />
+              <div
+                className="h-full bg-brand transition-all"
+                style={{ width: `${progressPct}%` }}
+              />
             </div>
             <button className="btn-danger" onClick={cancel}>
               {t('opt.cancel')}

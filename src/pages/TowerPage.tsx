@@ -25,9 +25,10 @@ export function TowerPage() {
     <div className="space-y-5">
       {carrierLocked && (
         <Notice tone="warn" title="مسح الأبراج مقفل من مشغّل الشبكة · Tower scan is carrier-locked">
-          فيرموير المشغّل لهذا الراوتر لا يتيح قائمة الخلايا المجاورة ولا بيانات الخلية التفصيلية، فلن تظهر أبراج
-          هنا. هذه الميزة تعمل بالكامل على راوتر غير مقفول (ZTE أو هواوي مفتوح). · The neighbour-cell / cell-info
-          endpoints are disabled by this carrier firmware, so no towers can be listed on this device.
+          فيرموير المشغّل لهذا الراوتر لا يتيح قائمة الخلايا المجاورة ولا بيانات الخلية التفصيلية،
+          فلن تظهر أبراج هنا. هذه الميزة تعمل بالكامل على راوتر غير مقفول (ZTE أو هواوي مفتوح). ·
+          The neighbour-cell / cell-info endpoints are disabled by this carrier firmware, so no
+          towers can be listed on this device.
         </Notice>
       )}
       <Card
@@ -78,20 +79,34 @@ export function TowerPage() {
                       <td className="py-2 pe-3">{cell.rat}</td>
                       <td className="py-2 pe-3">
                         {cell.isServing ? (
-                          <span className="chip border-good/50 text-good">{t('tower.serving')}</span>
+                          <span className="chip border-good/50 text-good">
+                            {t('tower.serving')}
+                          </span>
                         ) : (
                           <span className="text-content-muted">{t('tower.neighbour')}</span>
                         )}
                       </td>
-                      <td className="py-2 pe-3 font-mono">{orDash(cell.pci)}</td>
-                      <td className="py-2 pe-3 font-mono">{orDash(cell.earfcnArfcn)}</td>
-                      <td className="py-2 pe-3">{orDash(cell.band)}</td>
-                      <td className="py-2 pe-3 font-mono" style={{ color: qualityColor(classify('rsrp', cell.rsrp)) }}>
-                        {orDash(cell.rsrp)}
+                      <td className="py-2 pe-3 font-mono">
+                        <span className="num">{orDash(cell.pci)}</span>
                       </td>
-                      <td className="py-2 pe-3 font-mono">{orDash(cell.rsrq)}</td>
-                      <td className="py-2 pe-3 font-mono" style={{ color: qualityColor(classify('sinr', cell.sinr)) }}>
-                        {orDash(cell.sinr)}
+                      <td className="py-2 pe-3 font-mono">
+                        <span className="num">{orDash(cell.earfcnArfcn)}</span>
+                      </td>
+                      <td className="py-2 pe-3">{orDash(cell.band)}</td>
+                      <td
+                        className="py-2 pe-3 font-mono"
+                        style={{ color: qualityColor(classify('rsrp', cell.rsrp)) }}
+                      >
+                        <span className="num">{orDash(cell.rsrp)}</span>
+                      </td>
+                      <td className="py-2 pe-3 font-mono">
+                        <span className="num">{orDash(cell.rsrq)}</span>
+                      </td>
+                      <td
+                        className="py-2 pe-3 font-mono"
+                        style={{ color: qualityColor(classify('sinr', cell.sinr)) }}
+                      >
+                        <span className="num">{orDash(cell.sinr)}</span>
                       </td>
                       <td className="py-2 pe-3">{active && '◄'}</td>
                     </tr>

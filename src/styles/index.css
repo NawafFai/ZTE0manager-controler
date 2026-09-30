@@ -84,3 +84,11 @@
     @apply inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs;
   }
 }
+
+/* Numbers/units stay left-to-right inside RTL pages: otherwise "-87 dBm" renders
+   as "87 dBm-" and IPs / ping values get their punctuation reordered. */
+.num {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
