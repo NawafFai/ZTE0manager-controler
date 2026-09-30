@@ -27,7 +27,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      # Licenses + ANDROID_HOME only. The action's default package list starts with
+      # the legacy `tools` package, which sdkmanager no longer finds
+      # ("Failed to find package 'tools'"), aborting every Android build.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: ''
       - run: npm install --no-audit --no-fund
       - run: npm run build
       - run: npx cap add android
